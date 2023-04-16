@@ -1,5 +1,7 @@
 #pragma once
 
+#include "material/material.hpp"
+#include "mesh/mesh.hpp"
 #include <asset-loader.hpp>
 #include <ecs/transform.hpp>
 #include <application.hpp>
