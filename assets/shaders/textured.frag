@@ -11,7 +11,7 @@ uniform vec4 tint;
 uniform sampler2D tex;
 
 void main(){
-    //TODO: (Req 7) Modify the following line to compute the fragment color
+    //DONE_RETURN_HERE_LATER: (Req 7) Modify the following line to compute the fragment color
     // by multiplying the tint with the vertex color and with the texture color 
     frag_color = (fs_in.color) * vec4(texture(tex, fs_in.tex_coord));
 }
