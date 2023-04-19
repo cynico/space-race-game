@@ -1,5 +1,7 @@
 #include "camera.hpp"
 #include "../ecs/entity.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> 
 
@@ -21,9 +23,10 @@ namespace our {
 
     // Creates and returns the camera view matrix
     glm::mat4 CameraComponent::getViewMatrix() const {
+
         auto owner = getOwner();
         auto M = owner->getLocalToWorldMatrix();
-        //TODO: (Req 8) Complete this function
+        //DONE: (Req 8) Complete this function
         //HINT:
         // In the camera space:
         // - eye is the origin (0,0,0)
@@ -35,17 +38,35 @@ namespace our {
         // - the center position which is the point (0,0,-1) but after being transformed by M
         // - the up direction which is the vector (0,1,0) but after being transformed by M
         // then you can use glm::lookAt
-        return glm::mat4(1.0f);
+        glm::vec4 eye = M * glm::vec4(0,0,0, 1);
+        glm::vec4 center = M * glm::vec4(0,0,-1, 1);
+        glm::vec4 up = M * glm::vec4(0, 1, 0, 0); // vector
+         
+        glm::mat4 view = glm::lookAt(glm::vec3(eye), glm::vec3(center), glm::vec3(up));
+        return view;
     }
 
     // Creates and returns the camera projection matrix
     // "viewportSize" is used to compute the aspect ratio
     glm::mat4 CameraComponent::getProjectionMatrix(glm::ivec2 viewportSize) const {
-        //TODO: (Req 8) Wrtie this function
+        //DONE: (Req 8) Wrtie this function
         // NOTE: The function glm::ortho can be used to create the orthographic projection matrix
         // It takes left, right, bottom, top. Bottom is -orthoHeight/2 and Top is orthoHeight/2.
         // Left and Right are the same but after being multiplied by the aspect ratio
         // For the perspective camera, you can use glm::perspective
-        return glm::mat4(1.0f);
+        
+        glm::mat4 projectionMat;
+        float aspectRatio = (float)viewportSize[0] / viewportSize[1]; // aspectRation = width / height
+        if (this->cameraType == CameraType::ORTHOGRAPHIC) {
+
+            projectionMat = glm::ortho(-orthoHeight*aspectRatio/2, orthoHeight*aspectRatio/2, -orthoHeight/2, orthoHeight/2);
+
+        } else if (this->cameraType == CameraType::PERSPECTIVE) {
+
+            projectionMat = glm::perspective(this->fovY, aspectRatio, this->near, this->far);
+        
+        }
+
+        return projectionMat;
     }
 }

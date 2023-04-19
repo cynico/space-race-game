@@ -12,30 +12,8 @@ namespace our {
     // This function should setup the pipeline state and set the shader to be used
     void Material::setup() const {
         
-        //DONE_RETURN_HERE_AGAIN: (Req 7) Write this function
+        //DONE: (Req 7) Write this function
         pipelineState.setup();
-        
-        /*
-            if (dynamic_cast<const TexturedMaterial*>(this)) {
-                shader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
-                shader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
-            } else if (dynamic_cast<const TintedMaterial*>(this)) {
-                std::cout << "tinted" << std::endl;
-                if (!shader->attach("assets/shaders/tinted.vert", GL_VERTEX_SHADER)) {
-                    std::cerr << "error attaching vertex shader" << std::endl;
-                } else {
-                    std::cout << "correct" << std::endl;
-                }
-                if (!shader->attach("assets/shaders/tinted.frag", GL_FRAGMENT_SHADER)) {
-                    std::cerr << "error attaching fragment shader" << std::endl;
-                } else {
-                    std::cout << "correct" << std::endl;
-                }
-                if (!shader->link()) {
-                    std::cout << "why" << std::endl;
-                }
-            }
-        */
     }
 
     // This function read the material data from a json object

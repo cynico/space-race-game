@@ -8,6 +8,8 @@
 #include <glm/vec4.hpp>
 #include <json/json.hpp>
 
+#include <iostream>
+
 namespace our {
 
     // This is the base class for all the materials

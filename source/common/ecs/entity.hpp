@@ -6,6 +6,7 @@
 #include <iterator>
 #include <string>
 #include <glm/glm.hpp>
+#include <iostream>
 
 namespace our {
 
@@ -33,17 +34,27 @@ namespace our {
         template<typename T>
         T* addComponent(){
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            //TODO: (Req 8) Create an component of type T, set its "owner" to be this entity, then push it into the component's list
+            //DONE: (Req 8) Create an component of type T, set its "owner" to be this entity, then push it into the component's list
             // Don't forget to return a pointer to the new component
-            return nullptr;
+            T *newComponent = new T();
+            dynamic_cast<Component *>(newComponent)->owner = this;
+            this->components.push_back(newComponent);
+            
+            return newComponent;
         }
 
         // This template method searhes for a component of type T and returns a pointer to it
         // If no component of type T was found, it returns a nullptr 
         template<typename T>
         T* getComponent(){
-            //TODO: (Req 8) Go through the components list and find the first component that can be dynamically cast to "T*".
+            //DONE: (Req 8) Go through the components list and find the first component that can be dynamically cast to "T*".
             // Return the component you found, or return null of nothing was found.
+            for (auto it = components.begin(); it != components.end(); it++) {
+                if (dynamic_cast<T*>(*it)) {
+                    return dynamic_cast<T*>(*it);
+                }
+            }
+            
             return nullptr;
         }
 
@@ -61,8 +72,15 @@ namespace our {
         // This template method searhes for a component of type T and deletes it
         template<typename T>
         void deleteComponent(){
-            //TODO: (Req 8) Go through the components list and find the first component that can be dynamically cast to "T*".
+            //DONE: (Req 8) Go through the components list and find the first component that can be dynamically cast to "T*".
             // If found, delete the found component and remove it from the components list
+            for (auto it = components.begin(); it != components.end(); it++) {
+                if (dynamic_cast<T*>(*it)) {
+                    delete *it;
+                    components.remove(*it);
+                    return;
+                }
+            }   
         }
 
         // This template method searhes for a component of type T and deletes it
@@ -78,13 +96,23 @@ namespace our {
         // This template method searhes for the given component and deletes it
         template<typename T>
         void deleteComponent(T const* component){
-            //TODO: (Req 8) Go through the components list and find the given component "component".
+            //DONE: (Req 8) Go through the components list and find the given component "component".
             // If found, delete the found component and remove it from the components list
+            for (auto it = components.begin(); it != components.end(); it++) {
+                if (*it == component) {
+                    delete *it;
+                    components.remove(*it);
+                    return;
+                }
+            }
         }
 
         // Since the entity owns its components, they should be deleted alongside the entity
         ~Entity(){
-            //TODO: (Req 8) Delete all the components in "components".
+            //DONE: (Req 8) Delete all the components in "components".
+            for (auto it = components.begin(); it != components.end(); it++) {
+                delete *it;
+            }
         }
 
         // Entities should not be copyable

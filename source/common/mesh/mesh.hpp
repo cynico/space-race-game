@@ -81,7 +81,7 @@ namespace our {
         // this function should render the mesh
         void draw() 
         {
-            // DONE: (Req 2) Write this function
+            // DONE: (Req 2) Write this function            
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, (void *)0);
         }
