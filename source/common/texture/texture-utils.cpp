@@ -38,7 +38,7 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
     //DONE: (Req 5) Finish this function to fill the texture with the data found in "pixels"
     texture->bind();
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(pixels); //Free image data after uploading to GPU

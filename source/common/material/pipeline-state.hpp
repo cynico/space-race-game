@@ -49,11 +49,15 @@ namespace our {
                 glEnable(GL_CULL_FACE);
                 glCullFace(faceCulling.culledFace);
                 glFrontFace(faceCulling.frontFace);
+            } else {
+                glDisable(GL_CULL_FACE);
             }
 
             if (depthTesting.enabled) {
                 glEnable(GL_DEPTH_TEST);
                 glDepthFunc(depthTesting.function);
+            } else {
+                glDisable(GL_DEPTH_TEST);
             }
 
             if (blending.enabled) {
@@ -61,6 +65,8 @@ namespace our {
                 glBlendEquation(blending.equation);
                 glBlendFunc(blending.sourceFactor, blending.destinationFactor);
                 glBlendColor(blending.constantColor[0], blending.constantColor[1], blending.constantColor[2], blending.constantColor[3]);
+            } else {
+                glDisable(GL_BLEND);
             }
 
             glColorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
