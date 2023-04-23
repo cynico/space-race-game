@@ -1,5 +1,5 @@
 {
-    "start-scene": "clear-screen-test",
+    "start-scene": "menu",
     "window":
     {
         "title":"Default Game Window",

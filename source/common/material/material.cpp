@@ -51,7 +51,6 @@ namespace our {
     void TexturedMaterial::setup() const {
         
         //DONE: (Req 7) Write this function
-
         Material::setup();
         
         // Using the shader program and setting the alphaThreshold uniform.
@@ -60,13 +59,17 @@ namespace our {
 
         // Binding the texture and the sampler to texture unit 0.
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture->getOpenGLName());
-        sampler->bind(0);
+        if (texture != NULL) {
+            texture->bind();
+        }
         
+        if (sampler != NULL) {
+            sampler->bind(0);
+        }
+
         // Sending the value 0 as the value of the uniform tex.
         shader->set("tex", 0);
         shader->set("tint", tint);
-
 
     }
 
