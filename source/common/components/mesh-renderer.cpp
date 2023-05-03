@@ -2,6 +2,7 @@
 #include "../asset-loader.hpp"
 #include "material/material.hpp"
 #include <iostream>
+#include "../ecs/entity.hpp"
 
 namespace our {
     // Receives the mesh & material from the AssetLoader by the names given in the json object
@@ -14,10 +15,16 @@ namespace our {
         // you can use write: data["key"].get<T>().
         // Look at "source/common/asset-loader.hpp" to know how to use the static class AssetLoader.
 
-        std::string material = data.value("material", "monkey");
-        std::string mesh = data.value("mesh", "moon");
+        // Comment:
+        // This is self-explanatory given the above comment.
+        // I've used moon for the default material and monkey for the default mesh, because why not.
+        std::string material = data.value("material", "moon");
+        std::string mesh = data.value("mesh", "monkey");
         this->material = AssetLoader<Material>::get(material);
         this->mesh = AssetLoader<Mesh>::get(mesh);
 
+        /*if (mesh == "craft") {
+            this->isCameraAdjacent = true;
+        }*/
     }
 }

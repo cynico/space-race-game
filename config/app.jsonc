@@ -4,14 +4,14 @@
     {
         "title":"Default Game Window",
         "size":{
-            "width":1280,
-            "height":720
+            "width":1920,
+            "height":1080
         },
         "fullscreen": false
     },
     "scene": {
         "renderer":{
-            "sky": "assets/textures/sky.jpg",
+            "sky": "assets/textures/space.jpg",
             "postprocess": "assets/shaders/postprocess/vignette.frag"
         },
         "assets":{
@@ -30,13 +30,15 @@
                 "grass": "assets/textures/grass_ground_d.jpg",
                 "wood": "assets/textures/wood.jpg",
                 "glass": "assets/textures/glass-panels.png",
-                "monkey": "assets/textures/monkey.png"
+                "monkey": "assets/textures/monkey.png",
+                "craft": "assets/models/Craft/imagery/craft-texture.png"
             },
             "meshes":{
                 "cube": "assets/models/cube.obj",
                 "monkey": "assets/models/monkey.obj",
                 "plane": "assets/models/plane.obj",
-                "sphere": "assets/models/sphere.obj"
+                "sphere": "assets/models/sphere.obj",
+                "craft": "assets/models/Craft/craft.obj"
             },
             "samplers":{
                 "default":{},
@@ -124,12 +126,27 @@
                     "tint": [1, 1, 1, 1],
                     "texture": "moon",
                     "sampler": "default"
+                },
+                "craft":{
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling":{
+                            "enabled": false
+                        },
+                        "depthTesting":{
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "texture": "craft",
+                    "sampler": "default"
                 }
             }
         },
         "world":[
             {
-                "position": [0, 0, 10],
+                "position": [0, 2, 10],
                 "components": [
                     {
                         "type": "Camera"
@@ -137,19 +154,16 @@
                     {
                         "type": "Free Camera Controller"
                     }
-                ],
-                "children": [
+                ]
+            },
+            {
+                "position": [0, 0, -1],
+                "scale": [0.5, 0.5, 0.5],
+                "components": [
                     {
-                        "position": [1, -1, -1],
-                        "rotation": [45, 45, 0],
-                        "scale": [0.1, 0.1, 1.0],
-                        "components": [
-                            {
-                                "type": "Mesh Renderer",
-                                "mesh": "cube",
-                                "material": "metal"
-                            }
-                        ]
+                        "type":"Mesh Renderer",
+                        "mesh": "craft",
+                        "material": "craft"
                     }
                 ]
             },
@@ -242,17 +256,11 @@
             },
             {
                 "position": [0, 10, 0],
-                "rotation": [45, 45, 0],
-                "scale": [5, 5, 5],
                 "components": [
                     {
                         "type": "Mesh Renderer",
                         "mesh": "sphere",
                         "material": "moon"
-                    },
-                    {
-                        "type": "Movement",
-                        "angularVelocity": [0, 90, 0]
                     }
                 ]
             }

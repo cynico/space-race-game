@@ -8,16 +8,7 @@
 
 #include "states/menu-state.hpp"
 #include "states/play-state.hpp"
-#include "states/shader-test-state.hpp"
-#include "states/mesh-test-state.hpp"
-#include "states/transform-test-state.hpp"
-#include "states/pipeline-test-state.hpp"
-#include "states/texture-test-state.hpp"
-#include "states/sampler-test-state.hpp"
-#include "states/material-test-state.hpp"
-#include "states/entity-test-state.hpp"
-#include "states/renderer-test-state.hpp"
-#include "states/clear-screen-state.hpp"
+#include "states/winner-state.hpp"
 
 int main(int argc, char** argv) {
     
@@ -45,18 +36,9 @@ int main(int argc, char** argv) {
     
     // Register all the states of the project in the application
     app.registerState<Menustate>("menu");
-    app.registerState<Playstate>("play");
-    app.registerState<ShaderTestState>("shader-test");
-    app.registerState<MeshTestState>("mesh-test");
-    app.registerState<TransformTestState>("transform-test");
-    app.registerState<PipelineTestState>("pipeline-test");
-    app.registerState<TextureTestState>("texture-test");
-    app.registerState<SamplerTestState>("sampler-test");
-    app.registerState<MaterialTestState>("material-test");
-    app.registerState<EntityTestState>("entity-test");
-    app.registerState<RendererTestState>("renderer-test");
-    //app.registerState<ClearScreenState>("clear-screen-test");
-
+    app.registerState<Playstate>("play-USSR");
+    app.registerState<Playstate>("play-US");
+    app.registerState<Winnerstate>("winner");
 
     // Then choose the state to run based on the option "start-scene" in the config
     if(app_config.contains(std::string{"start-scene"})){

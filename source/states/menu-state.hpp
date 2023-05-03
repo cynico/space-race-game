@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glad/gl.h"
 #include <application.hpp>
 #include <shader/shader.hpp>
 #include <texture/texture2d.hpp>
@@ -45,7 +46,7 @@ class Menustate: public our::State {
     // A variable to record the time since the state is entered (it will be used for the fading effect).
     float time;
     // An array of the button that we can interact with
-    std::array<Button, 2> buttons;
+    std::array<Button, 3> buttons;
 
     void onInitialize() override {
         // First, we create a material for the menu's background
@@ -99,13 +100,20 @@ class Menustate: public our::State {
         // - The argument list () which is the arguments that the lambda should receive when it is called.
         //      We leave it empty since button actions receive no input.
         // - The body {} which contains the code to be executed. 
-        buttons[0].position = {830.0f, 607.0f};
-        buttons[0].size = {400.0f, 33.0f};
-        buttons[0].action = [this](){this->getApp()->changeState("play");};
 
-        buttons[1].position = {830.0f, 644.0f};
-        buttons[1].size = {400.0f, 33.0f};
-        buttons[1].action = [this](){this->getApp()->close();};
+        glm::ivec2 windowSize = getApp()->getWindowSize();
+        buttons[0].position = {830.0f*(windowSize.x/1280.0), 570.0f*(windowSize.y/720.0)};
+        buttons[0].size = {400.0f*(windowSize.x/1280.0), 33.0f*(windowSize.y/720.0)};
+        buttons[0].action = [this](){this->getApp()->changeState("play-USSR");};
+
+        
+        buttons[1].position = {830.0f*(windowSize.x/1280.0), 607.0f*(windowSize.y/720.0)};
+        buttons[1].size = {400.0f*(windowSize.x/1280.0), 33.0f*(windowSize.y/720.0)};
+        buttons[1].action = [this](){this->getApp()->changeState("play-US");};
+
+        buttons[2].position = {830.0f*(windowSize.x/1280.0), 644.0f*(windowSize.y/720.0)};
+        buttons[2].size = {400.0f*(windowSize.x/1280.0), 33.0f*(windowSize.y/720.0)};
+        buttons[2].action = [this](){this->getApp()->close();};
     }
 
     void onDraw(double deltaTime) override {
@@ -114,7 +122,9 @@ class Menustate: public our::State {
 
         if(keyboard.justPressed(GLFW_KEY_SPACE)){
             // If the space key is pressed in this frame, go to the play state
-            getApp()->changeState("play");
+            getApp()->changeState("play-USSR");
+        } else if (keyboard.justPressed(GLFW_KEY_ENTER)) {
+            getApp()->changeState("play-US");
         } else if(keyboard.justPressed(GLFW_KEY_ESCAPE)) {
             // If the escape key is pressed in this frame, exit the game
             getApp()->close();

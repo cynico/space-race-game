@@ -13,6 +13,16 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)    # Don't build Examples
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)           # Don't build Installation Information
 set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)     # Add variables to use High Performance Graphics Card if available
 add_subdirectory(vendor/glfw)                       # Build the GLFW project to use later as a library
+add_subdirectory(vendor/freetype)                       # Build the FreeType project to use later as a library (for fonts)
+
+
+
+# Irrklang libraries for sound
+add_library(irrklang SHARED IMPORTED)
+set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/vendor/irrKlang/bin/libIrrKlang.so)
+
+add_library(ikpMP3 SHARED IMPORTED)
+set_target_properties(ikpMP3 PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/vendor/irrKlang/bin/ikpMP3.so)
 
 # A variable with all the source files of GLAD
 set(GLAD_SOURCE vendor/glad/src/gl.c)
@@ -78,11 +88,16 @@ set(COMMON_SOURCES
         source/common/components/movement.hpp
         source/common/components/movement.cpp
         source/common/components/component-deserializer.hpp
+        source/common/components/light.hpp
+        source/common/components/light.cpp
 
         source/common/systems/forward-renderer.hpp
         source/common/systems/forward-renderer.cpp
         source/common/systems/free-camera-controller.hpp
         source/common/systems/movement.hpp
+
+        source/common/text-utils.hpp
+        source/common/text-utils.cpp
 )
 
 # Define the directories in which to search for the included headers
@@ -93,6 +108,8 @@ include_directories(
         vendor/glm
         vendor/imgui
         vendor/utils
+        vendor/irrKlang/include
+        vendor/freetype/include
 )
 
 
@@ -102,22 +119,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEFINED_IN_CMAKELISTS")
 
+set( CMAKE_VERBOSE_MAKEFILE on )
+
 set(STATES_SOURCES
         source/states/play-state.hpp
         source/states/menu-state.hpp
-        source/states/shader-test-state.hpp
-        source/states/mesh-test-state.hpp
-        source/states/transform-test-state.hpp
-        source/states/pipeline-test-state.hpp
-        source/states/texture-test-state.hpp
-        source/states/sampler-test-state.hpp
-        source/states/material-test-state.hpp
-        source/states/entity-test-state.hpp
-        source/states/renderer-test-state.hpp
+        source/states/winner-state.hpp
 )
 
 # For each example, we add an executable target
 # Each target compiles one example source file and the common & vendor source files
 # Then we link GLFW with each target
 add_executable(GAME_APPLICATION source/main.cpp ${STATES_SOURCES} ${COMMON_SOURCES} ${VENDOR_SOURCES})
-target_link_libraries(GAME_APPLICATION glfw)
+target_link_libraries(GAME_APPLICATION PUBLIC glfw freetype PRIVATE irrklang ikpMP3)

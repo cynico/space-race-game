@@ -7,21 +7,15 @@
 #include <iostream>
 
 our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size){
+    
     our::Texture2D* texture = new our::Texture2D();
-    
     //DONE: (Req 11) Finish this function to create an empty texture with the given size and format
+  
+    // Comment:
+    // First we bind the textures we created, to GL_TEXTURE_2D.
+    // We generate one level of texture for the provided format, and the provided size.
     texture->bind();
-    
-    // This is a workaround for something I do not completely get.
-    // The third argument is supposed to specify the internal format of the data, which should be: 24bit depth component, thus GL_DEPTH_COMPONENT24.
-    // The seventh argument is supposed to specify the format of the source image that I am passing (in this case, null), but whenever I specify
-    // it to be GL_DEPTH_COMPONENT24, it throws and error.
-    // Check this out: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glTexImage2D.xml
-    if (format == GL_DEPTH_COMPONENT) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-    } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, NULL);
-    }
+    glTexStorage2D(GL_TEXTURE_2D, 1, format, size.x, size.y);
     return texture;
 }
 

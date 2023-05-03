@@ -7,24 +7,14 @@
 
 namespace our {
 
-    void printMatrix(glm::mat4 matrix) {
-
-        std::cout << "[" << std::endl;
-
-        for (int i = 0; i <  4; i++ ) {
-            std::cout << matrix[0][i] << ' ' << matrix[1][i] << ' ' <<  matrix[2][i] << ' ' << matrix[3][i];  
-            std::cout << std::endl;
-        }
-
-        std::cout << "]" << std::endl;
-    }
-
     // This function computes and returns a matrix that represents this transform
     // Remember that the order of transformations is: Scaling, Rotation then Translation
     // HINT: to convert euler angles to a rotation matrix, you can use glm::yawPitchRoll
     glm::mat4 Transform::toMat4() const {
         
         //DONE: (Req 3) Write this function
+        
+        // Comment:
         // Order: Scaling, rotation, translation. (The order is reversed in the multiplication order)
 
         // Translation

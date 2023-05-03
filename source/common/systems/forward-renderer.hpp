@@ -4,8 +4,10 @@
 #include "../components/camera.hpp"
 #include "../components/mesh-renderer.hpp"
 #include "../asset-loader.hpp"
+#include "components/light.hpp"
 
 #include <glad/gl.h>
+#include <unordered_set>
 #include <vector>
 #include <algorithm>
 
@@ -48,7 +50,6 @@ namespace our
         void destroy();
         // This function should be called every frame to draw the given world
         void render(World* world);
-
 
     };
 

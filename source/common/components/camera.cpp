@@ -56,15 +56,11 @@ namespace our {
         // For the perspective camera, you can use glm::perspective
         
         glm::mat4 projectionMat;
-        float aspectRatio = (float)viewportSize[0] / viewportSize[1]; // aspectRation = width / height
+        float aspectRatio = (float)viewportSize[0] / viewportSize[1]; // aspectRatio = width / height
         if (this->cameraType == CameraType::ORTHOGRAPHIC) {
-
             projectionMat = glm::ortho(-orthoHeight*aspectRatio/2, orthoHeight*aspectRatio/2, -orthoHeight/2, orthoHeight/2);
-
         } else if (this->cameraType == CameraType::PERSPECTIVE) {
-
             projectionMat = glm::perspective(this->fovY, aspectRatio, this->near, this->far);
-        
         }
 
         return projectionMat;
