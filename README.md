@@ -1,0 +1,1 @@
+* Make sure to download FreeType library and place it under vendor; the path should be: vendor/freetype (with not versioning in the name). Make sure to download latest version. The download link is: https://sourceforge.net/projects/freetype/ 
