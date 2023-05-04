@@ -102,7 +102,7 @@ class Playstate: public our::State {
         }
         
         // We create the randomized artifacts.
-        this->createRandomizedEnvironment();
+        this->createRandomizedArtifacts();
 
         // We create the necessary text to be displayed, mainly: text to display time,
         // text to display the current player, and text to display the number of collected
@@ -140,15 +140,16 @@ class Playstate: public our::State {
         renderer.initialize(size, config["renderer"]);
     }
 
-    void createRandomizedEnvironment() {
+    // This function creates a random number of collectable artifacts at random locations
+    // along the race track, between a minimum and a maximum number of total artifacts.
+    void createRandomizedArtifacts() {
 
-        // Generate a random number of space artifacts.
         srand(time(0));
         srandom(time(0));
         
-        totalNumberOfArtifacts = rand() % 10;
-        totalNumberOfArtifacts = (20 - 10 + 1) + 10;
-
+        int minArtifacts = 40, maxArtifacts = 100;
+        totalNumberOfArtifacts = rand() % (maxArtifacts - minArtifacts + 1);
+        totalNumberOfArtifacts = totalNumberOfArtifacts + minArtifacts;
 
         std::cout << "The random number of artifacts will be: " << totalNumberOfArtifacts << std::endl;
 
