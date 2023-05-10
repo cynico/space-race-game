@@ -5,8 +5,6 @@
 #include <tinyobj/tiny_obj_loader.h>
 
 #include <iostream>
-#include <vector>
-#include <unordered_map>
 
 our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
 
@@ -82,6 +80,89 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
     }
 
     return new our::Mesh(vertices, elements);
+}
+
+
+// This function is similar to the above one, provided originally with the project's
+// code, but instead of returning our::Mesh, returns our::MultipleMeshes. That is,
+// this function loads and returns the objects in the .obj file into separate meshes
+// encapsulated by the our::MultipleMeshes (which has as a member the list of meshes it contains)
+// while the above one merges all together into one mesh.
+our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filename) {
+
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn, err;
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str())) {
+        std::cerr << "Failed to load obj file \"" << filename << "\" due to error: " << err << std::endl;
+        return nullptr;
+    }
+    if (!warn.empty()) {
+        std::cout << "WARN while loading obj file \"" << filename << "\": " << warn << std::endl;
+    }
+
+    // Creating the list of meshes to return later in an our::MultipleMeshes object.
+    std::list<our::Mesh*>* listOfMeshes = new std::list<our::Mesh*>();
+
+    for (const auto &shape : shapes) {
+        
+        // The main difference here to the above function: we define "vertices"
+        // and "elements" PER shape, and we create a new mesh of a new pair of them
+        // for EVERY shape.
+
+        std::vector<our::Vertex> vertices;
+        std::vector<GLuint> elements;
+
+        std::unordered_map<our::Vertex, GLuint> vertex_map;
+
+        for (const auto &index : shape.mesh.indices) {
+            Vertex vertex = {};
+
+            vertex.position = {
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]
+            };
+
+            vertex.normal = {
+                    attrib.normals[3 * index.normal_index + 0],
+                    attrib.normals[3 * index.normal_index + 1],
+                    attrib.normals[3 * index.normal_index + 2]
+            };
+
+            vertex.tex_coord = {
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    attrib.texcoords[2 * index.texcoord_index + 1]
+            };
+
+
+            vertex.color = {
+                    attrib.colors[3 * index.vertex_index + 0] * 255,
+                    attrib.colors[3 * index.vertex_index + 1] * 255,
+                    attrib.colors[3 * index.vertex_index + 2] * 255,
+                    255
+            };
+
+            auto it = vertex_map.find(vertex);
+            if (it == vertex_map.end()) {
+                auto new_vertex_index = static_cast<GLuint>(vertices.size());
+                vertex_map[vertex] = new_vertex_index;
+                elements.push_back(new_vertex_index);
+                vertices.push_back(vertex);
+            } else {
+                elements.push_back(it->second);
+            }
+        }
+
+        // Creating the mesh and pushing it to the listOfMeshes.
+        listOfMeshes->push_back(new Mesh(vertices, elements));
+    }
+
+    // Returning the new our::MultipleMeshes object.
+    return new our::MultipleMeshes(listOfMeshes);
+
 }
 
 // Create a sphere (the vertex order in the triangles are CCW from the outside)

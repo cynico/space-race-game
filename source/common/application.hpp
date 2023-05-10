@@ -218,12 +218,11 @@ namespace our {
                 // Change the state to the winner state.
                 this->changeState(winnerState);
                 
-            } else if (US.finished) {
-                this->changeState("play-USSR");
-            } else {
-                std::cout << "this should work" << std::endl;
-                this->changeState("play-US");
             } 
+            else if (US.finished)
+                this->changeState("play-USSR");
+            else
+                this->changeState("play-US");
         }
         
         // A function that returns the winner, used in the Winnerstate.

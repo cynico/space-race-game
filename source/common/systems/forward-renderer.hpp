@@ -5,6 +5,9 @@
 #include "../components/mesh-renderer.hpp"
 #include "../asset-loader.hpp"
 #include "components/light.hpp"
+#include "material/material.hpp"
+#include "mesh/multiple-meshes.hpp"
+#include "shader/shader.hpp"
 
 #include <glad/gl.h>
 #include <unordered_set>
@@ -35,6 +38,7 @@ namespace our
         // We define them here (instead of being local to the "render" function) as an optimization to prevent reallocating them every frame
         std::vector<RenderCommand> opaqueCommands;
         std::vector<RenderCommand> transparentCommands;
+
         // Objects used for rendering a skybox
         Mesh* skySphere;
         TexturedMaterial* skyMaterial;
@@ -42,6 +46,10 @@ namespace our
         GLuint postprocessFrameBuffer, postProcessVertexArray;
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial* postprocessMaterial;
+
+        // Forbidden zone material and vertex array. 
+        GLuint forbiddenVertexArray;
+        Material* forbiddenZoneMaterial;
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
         // windowSize is the width & height of the window (in pixels).
@@ -49,7 +57,7 @@ namespace our
         // Clean up the renderer
         void destroy();
         // This function should be called every frame to draw the given world
-        void render(World* world);
+        void render(World* world, bool forbiddenAccess);
 
     };
 

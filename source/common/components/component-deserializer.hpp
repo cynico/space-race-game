@@ -3,6 +3,7 @@
 #include "../ecs/entity.hpp"
 #include "camera.hpp"
 #include "components/light.hpp"
+#include "components/multiple-meshes-renderer.hpp"
 #include "mesh-renderer.hpp"
 #include "free-camera-controller.hpp"
 #include "movement.hpp"
@@ -26,12 +27,14 @@ namespace our {
             component = entity->addComponent<MeshRendererComponent>();
         } else if (type == LightComponent::getID()) {
             component = entity->addComponent<LightComponent>();
+        } else if (type == MultipleMeshesRendererComponent::getID()) {
+            component = entity->addComponent<MultipleMeshesRendererComponent>();
         }
         if(component) component->deserialize(data);
-
-        if (type == LightComponent::getID())  {
+        // Printing the info of the component if it is a light source.
+        /*if (type == LightComponent::getID())  {
             dynamic_cast<LightComponent*>(component)->PrintYourLightInfo();
-        }
+        }*/
     }
 
 }

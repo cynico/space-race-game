@@ -7,11 +7,22 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <unordered_set>
 
 namespace our {
 
     class World; // A forward declaration of the World Class
 
+    // This enum will hold the type of the entity, used in 
+    // collision detection. So far, we only need to know whether
+    // the entity has a mesh of a coin, or a mesh of a planet,
+    // other than that, we are not interested. 
+    enum TYPE_OF_GENERATED_ENTITY {
+        CELESTIAL_ORB,
+        COLLECTABLE_COIN,
+        OTHER
+    };
+    
     class Entity{
         World *world; // This defines what world own this entity
         std::list<Component*> components; // A list of components that are owned by this entity
@@ -30,6 +41,8 @@ namespace our {
         void deserialize(const nlohmann::json&); // Deserializes the entity data and components from a json object
         
         Entity* master = nullptr;
+
+        TYPE_OF_GENERATED_ENTITY typeOfChildMesh = OTHER; // Type of the mesh the entity holds (if any).
         // This template method create a component of type T,
         // adds it to the components map and returns a pointer to it 
         template<typename T>
@@ -40,8 +53,12 @@ namespace our {
             T *newComponent = new T();
             dynamic_cast<Component *>(newComponent)->owner = this;
             this->components.push_back(newComponent);
-            
+
             return newComponent;
+        }
+
+        int getComponentsSize() {
+            return components.size();
         }
 
         // This template method searhes for a component of type T and returns a pointer to it
@@ -109,13 +126,11 @@ namespace our {
 
         // Since the entity owns its components, they should be deleted alongside the entity
         ~Entity(){
-            //DONE: (Req 8) Delete all the components in "components".
-            for (auto it = components.begin(); it != components.end(); it++) {
-                delete *it;
-            }
-            components.clear();
+            //DONE: (Req 8) Delete all the components in "components".            
+            for (auto it = this->components.begin(); it != this->components.end(); it++) delete *it;
+            this->components.clear();
         }
-
+        
         // Entities should not be copyable
         Entity(const Entity&) = delete;
         Entity &operator=(Entity const &) = delete;

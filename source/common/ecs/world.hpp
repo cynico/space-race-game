@@ -4,7 +4,9 @@
 #include "components/light.hpp"
 #include "components/mesh-renderer.hpp"
 #include "entity.hpp"
+#include "json/json.hpp"
 #include <iostream>
+#include <ostream>
 #include <unordered_set>
 
 
@@ -57,12 +59,12 @@ public:
 
       // If it contains a light component, remove it from the set of light
       // components as well.
-      if (our::LightComponent *light = (*it)->getComponent<LightComponent>();
-          light) {
+      if (our::LightComponent *light = (*it)->getComponent<LightComponent>(); light) {
         setOfLights.erase(light);
       }
-      entities.erase(*it);
+      
       markedForRemoval.insert(*it);
+      entities.erase(*it);
     }
   }
 
@@ -71,10 +73,7 @@ public:
   void deleteMarkedEntities() {
     // DONE: (Req 8) Remove and delete all the entities that have been marked
     // for removal
-    for (auto it = markedForRemoval.begin(); it != markedForRemoval.end();
-         it++) {
-      delete *it;
-    }
+    for (auto it = markedForRemoval.begin(); it != markedForRemoval.end(); it++) delete *it;
     markedForRemoval.clear();
   }
 
@@ -86,7 +85,10 @@ public:
     for (auto it = entities.begin(); it != entities.end(); it++) {
       delete *it;
     }
+    
     entities.clear();
+    setOfSpaceArtifacts.clear();
+    setOfLights.clear();
   }
 
   // Since the world owns all of its entities, they should be deleted alongside

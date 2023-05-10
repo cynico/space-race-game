@@ -55,6 +55,7 @@ set(COMMON_SOURCES
 
         source/common/mesh/vertex.hpp
         source/common/mesh/mesh.hpp
+        source/common/mesh/multiple-meshes.hpp
         source/common/mesh/mesh-utils.hpp
         source/common/mesh/mesh-utils.cpp
 
@@ -90,6 +91,9 @@ set(COMMON_SOURCES
         source/common/components/component-deserializer.hpp
         source/common/components/light.hpp
         source/common/components/light.cpp
+
+        source/common/components/multiple-meshes-renderer.hpp
+        source/common/components/multiple-meshes-renderer.cpp
 
         source/common/systems/forward-renderer.hpp
         source/common/systems/forward-renderer.cpp

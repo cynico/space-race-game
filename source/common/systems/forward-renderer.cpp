@@ -2,6 +2,7 @@
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 #include "components/light.hpp"
+#include "components/multiple-meshes-renderer.hpp"
 #include "glad/gl.h"
 #include "glm/geometric.hpp"
 #include "shader/shader.hpp"
@@ -123,6 +124,24 @@ namespace our {
             // so it is more performant to disable the depth mask
             postprocessMaterial->pipelineState.depthMask = false;
         }
+
+        // Initialize the material associated with the red plane that appears
+        // when the player tries to access a forbidden zone (anything behind a certain point on the z-access)
+        ShaderProgram* forbiddenShader = new ShaderProgram();
+        forbiddenShader->attach("assets/shaders/forbidden-access.frag", GL_FRAGMENT_SHADER);
+        forbiddenShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
+        forbiddenShader->link();
+
+        // Setting up the material with the created shader, and a pipeline state that enabled blending.
+        forbiddenZoneMaterial = new Material();
+        forbiddenZoneMaterial->shader = forbiddenShader;
+        forbiddenZoneMaterial->pipelineState.blending.enabled = true;
+        // Generating a vertex array that will be used for drawing.
+        // Note that we will not actually fill this vertex array with anything, all the vertices
+        // needed for the plane will be in the vertex shader fullscreen.vert (the same one used)
+        // for postprocess materials.
+        glGenVertexArrays(1, &forbiddenVertexArray);
+
     }
 
     void ForwardRenderer::destroy(){
@@ -146,7 +165,7 @@ namespace our {
         }
     }
 
-    void ForwardRenderer::render(World* world){
+    void ForwardRenderer::render(World* world, bool forbiddenAccess){
         // First of all, we search for a camera and for all the mesh renderers
         CameraComponent* camera = nullptr;
         opaqueCommands.clear();
@@ -169,6 +188,26 @@ namespace our {
                 // Otherwise, we add it to the opaque command list
                     opaqueCommands.push_back(command);
                 }
+            } else if (auto multipleMeshRender = entity->getComponent<MultipleMeshesRendererComponent>(); multipleMeshRender) {
+                
+                auto material = multipleMeshRender->materials->begin();
+                for (auto mesh = multipleMeshRender->meshes->listOfMeshes->begin(); mesh != multipleMeshRender->meshes->listOfMeshes->end(); mesh++) {
+                    RenderCommand command;
+                    
+                    command.localToWorld = multipleMeshRender->getOwner()->getLocalToWorldMatrix();
+                    command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                    command.mesh = (*mesh);
+                    command.material = (*material); 
+
+                    if (command.material->transparent) {
+                        transparentCommands.push_back(command);
+                    } else {
+                        opaqueCommands.push_back(command);
+                    }
+
+                    material++;
+                }
+
             }
         }
 
@@ -244,15 +283,15 @@ namespace our {
 
                 // Setting sky colors. We are in space, there's no sense in making one different
                 // than the other, so I made them all blackish gray.
-                currentShader->set("sky.top", glm::vec3(0.1f, 0.1f, 0.1f));
-                currentShader->set("sky.horizon", glm::vec3(0.1f, 0.1f, 0.1f));
-                currentShader->set("sky.bottom", glm::vec3(0.1f, 0.1f, 0.1f));
+                currentShader->set("sky.top", glm::vec3(0.3f, 0.3f, 0.3f));
+                currentShader->set("sky.horizon", glm::vec3(0.3f, 0.3f, 0.3f));
+                currentShader->set("sky.bottom", glm::vec3(0.3f, 0.3f, 0.3f));
                 
                 int i = 0;
 
                 // Looping over all existent lights components.
                 for (auto lightIterator = world->setOfLights.begin(); lightIterator != world->setOfLights.end(); lightIterator++) {
-                    
+
                     // Setting the light's parameters: the type, color, attenuation, and cone_angles. 
                     currentShader->set( our::string_format("lights[%d].type", i), (int)(*lightIterator)->type);
                     currentShader->set(our::string_format("lights[%d].color", i), (*lightIterator)->color);
@@ -266,17 +305,17 @@ namespace our {
                     currentShader->set(our::string_format("lights[%d].direction", i), (*lightIterator)->direction);
                     currentShader->set(our::string_format("lights[%d].position", i), (*lightIterator)->getOwner()->localTransform.position);
 
-
-                    // Setting the M matrix, M_IT matrix, and VP matrix for use in the lit.vert shader.
-                    currentShader->set("M", (*it).localToWorld);
-                    currentShader->set("M_IT",  glm::transpose(glm::inverse((*it).localToWorld)));
-                    currentShader->set("VP", VP);
-                    
-                    // Setting the camera position.
-                    currentShader->set("camera_position", cameraPosition);
                     i++;
 
                 }
+
+                // Setting the M matrix, M_IT matrix, and VP matrix for use in the lit.vert shader.
+                currentShader->set("M", (*it).localToWorld);
+                currentShader->set("M_IT",  glm::transpose(glm::inverse((*it).localToWorld)));
+                currentShader->set("VP", VP);
+                
+                // Setting the camera position.
+                currentShader->set("camera_position", cameraPosition);
             } else {
                 // Otherwise, if it's a textured or a tinted material, just set the transform monolith matrix.
                 currentShader->set("transform", transform);
@@ -359,6 +398,15 @@ namespace our {
             postprocessMaterial->shader->use();
             glBindVertexArray(this->postProcessVertexArray);
             postprocessMaterial->texture->bind();
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        // If the camera has tried to move into a forbidden zone, draw a red transparent plane
+        // the size of the screen.
+        if (forbiddenAccess) {
+            glBindVertexArray(this->forbiddenVertexArray);
+            forbiddenZoneMaterial->setup();
+            forbiddenZoneMaterial->shader->use();
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
     }

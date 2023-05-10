@@ -65,4 +65,11 @@ namespace our {
 
         return projectionMat;
     }
+
+    void CameraComponent::setPosition(glm::vec3 updatedPosition) {
+        this->getOwner()->localTransform.position.x = updatedPosition.x;
+        this->getOwner()->localTransform.position.y = updatedPosition.y;
+        this->getOwner()->localTransform.position.z = updatedPosition.z;
+
+    }
 }

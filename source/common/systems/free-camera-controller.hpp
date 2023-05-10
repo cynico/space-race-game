@@ -28,7 +28,12 @@ namespace our
         }
 
         // This should be called every frame to update all entities containing a FreeCameraControllerComponent 
-        CameraComponent* update(World* world, float deltaTime) {
+        
+        // The additional two arguments: updatedPosition, and forbiddenAccess are used to return values.
+        // forbiddenAccess: returns whether the camera has tried to enter a forbidden zone, so that we may
+        // draw a red screen indicating that the zone is forbidden.
+        // updatedPosition: the updated position of the camera.
+        CameraComponent* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess) {
             // First of all, we search for an entity containing both a CameraComponent and a FreeCameraControllerComponent
             // As soon as we find one, we break
             CameraComponent* camera = nullptr;
@@ -90,15 +95,28 @@ namespace our
 
             // We change the camera position based on the keys WASD/QE
             // S & W moves the player back and forth
-            if(app->getKeyboard().isPressed(GLFW_KEY_W)) position += front * (deltaTime * current_sensitivity.z);
-            if(app->getKeyboard().isPressed(GLFW_KEY_S)) position -= front * (deltaTime * current_sensitivity.z);
-            // Q & E moves the player up and down
-            if(app->getKeyboard().isPressed(GLFW_KEY_Q)) position += up * (deltaTime * current_sensitivity.y);
-            if(app->getKeyboard().isPressed(GLFW_KEY_E)) position -= up * (deltaTime * current_sensitivity.y);
-            // A & D moves the player left or right 
-            if(app->getKeyboard().isPressed(GLFW_KEY_D)) position += right * (deltaTime * current_sensitivity.x);
-            if(app->getKeyboard().isPressed(GLFW_KEY_A)) position -= right * (deltaTime * current_sensitivity.x);
+            glm::vec3 tempPosition(position);
+            updatedPosition->z = position.z;
+            
+            if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
 
+            if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
+
+            // Q & E moves the player up and down
+            if(app->getKeyboard().isPressed(GLFW_KEY_Q)) tempPosition += up * (deltaTime * current_sensitivity.y);
+            if(app->getKeyboard().isPressed(GLFW_KEY_E)) tempPosition -= up * (deltaTime * current_sensitivity.y);
+            // A & D moves the player left or right 
+            if(app->getKeyboard().isPressed(GLFW_KEY_D)) tempPosition +=  right * (deltaTime * current_sensitivity.x);
+            if(app->getKeyboard().isPressed(GLFW_KEY_A)) tempPosition -=  right * (deltaTime * current_sensitivity.x);
+
+            // We limit the movement, in that the player can't go behind the start point at z=8
+            updatedPosition->x = tempPosition.x; updatedPosition->y = tempPosition.y;
+            if (tempPosition.z <= 8) {
+                updatedPosition->z = tempPosition.z;
+            } else {
+                *forbiddenAccess = true;
+            }
+            
             return camera;
         }
 

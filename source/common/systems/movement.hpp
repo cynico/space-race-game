@@ -28,7 +28,7 @@ namespace our
                 // If the movement component exists
                 if(movement){
                     // Change the position and rotation based on the linear & angular velocity and delta time.
-                    entity->localTransform.position += deltaTime * glm::vec3(10*sinf(glfwGetTime()), 0, 10*cosf(glfwGetTime()));
+                    entity->localTransform.position += deltaTime * movement->linearVelocity;
                     entity->localTransform.rotation += deltaTime * movement->angularVelocity;
                 }
             }

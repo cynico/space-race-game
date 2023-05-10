@@ -5,6 +5,7 @@
 #include "texture/texture-utils.hpp"
 #include "texture/sampler.hpp"
 #include "mesh/mesh.hpp"
+#include "mesh/multiple-meshes.hpp"
 #include "mesh/mesh-utils.hpp"
 #include "material/material.hpp"
 #include "deserialize-utils.hpp"
@@ -73,6 +74,23 @@ namespace our {
         }
     };
 
+    
+    // This will load all the "multiple-meshes" asset defined in "data"
+    // a "multiple-meshes" component is simply an asset similar to "mesh"
+    // but only, it has multiple objects (meshes) defined in the .obj file
+    // and they are loaded into separate meshes, unlike the "mesh" asset
+    // which would, if given the same file, merge all the meshes together
+    // into one "mesh" asset.  
+    template<>
+    void AssetLoader<MultipleMeshes>::deserialize(const nlohmann::json& data) {
+        if (data.is_object()) {
+            for(auto& [name, desc] : data.items()){
+                std::string path = desc.get<std::string>();
+                assets[name] = mesh_utils::loadMultipleOBJ(path);
+            }
+        }
+    }
+
     // This will load all the materials defined in "data"
     // Material deserialization depends on shaders, textures and samplers
     // so you must deserialize these 3 asset types before deserializing materials
@@ -109,6 +127,9 @@ namespace our {
             AssetLoader<Mesh>::deserialize(assetData["meshes"]);
         if(assetData.contains("materials"))
             AssetLoader<Material>::deserialize(assetData["materials"]);
+        // This line is added because we added a new asset that needs deserialization: multiple-meshes
+        if (assetData.contains("multiple-meshes"))
+            AssetLoader<MultipleMeshes>::deserialize(assetData["multiple-meshes"]);
     }
 
     void clearAllAssets(){
@@ -117,6 +138,7 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
+        AssetLoader<MultipleMeshes>::clear();
     }
 
 }

@@ -38,6 +38,18 @@ namespace our {
     void Entity::deserialize(const nlohmann::json& data){
         if(!data.is_object()) return;
         name = data.value("name", name);
+
+        // Obtaining the type of the mesh (if any) included in the entity
+        // Setting t
+        std::string t = data.value("typeOfGenerated", "OTHER");
+        if (t == "CELESTIAL_ORB") {
+            typeOfChildMesh = CELESTIAL_ORB;
+        } else if (t == "COLLECTABLE_COIN") {
+            typeOfChildMesh = COLLECTABLE_COIN;
+        } else {
+            typeOfChildMesh = OTHER;
+        }
+
         localTransform.deserialize(data);
         if(data.contains("components")){
             if(const auto& components = data["components"]; components.is_array()){
