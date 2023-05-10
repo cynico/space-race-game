@@ -15,13 +15,14 @@
 #include "components/light.hpp"
 #include "ecs/entity.hpp"
 #include "our-util.hpp"
-#include "playstate-type.hpp"
+#include "extra-definitions.hpp"
 #include "systems/collision-detection.hpp"
 
 #include "../common/text-utils.hpp"
 #include "../common/components/movement.hpp"
 
 #include <time.h>
+
 
 // This state shows how to use the ECS framework and deserialization.
 class Playstate: public our::State {
@@ -32,6 +33,8 @@ class Playstate: public our::State {
     our::MovementSystem movementSystem;
     our::CollisionDetectionSystem collisionSystem;
     our::Text* currentPlayerText, *timeText, *numberOfCollectedArtifactsText;
+
+    our::MovementRestriction movementRestriction;
 
     // This will indicate the total number of collectable artifacts. 
     int totalNumberOfArtifacts;
@@ -51,6 +54,18 @@ class Playstate: public our::State {
         if(config.contains("assets")){
             our::deserializeAllAssets(config["assets"]);
         }
+
+        // This controls whether the player is allowed all range of movement along the axes.
+        if (config.contains("movement-control")) {
+            if (!config["movement-control"].is_object())
+                std::cerr << "ERROR: movement-control IN config.json MUST BE AN OBJECT." << std::endl;
+            else {
+                movementRestriction.restrict_x = config["movement-control"].value("restrict-x", false);
+                movementRestriction.restrict_y = config["movement-control"].value("restrict-y", false);
+                movementRestriction.restrict_z = config["movement-control"].value("restrict-z", false);
+            }
+        }
+        
         // If we have a world in the scene config, we use it to populate our world
         if(config.contains("world")){
             world.deserialize(config["world"]);
@@ -100,6 +115,8 @@ class Playstate: public our::State {
             */
 
             // 
+            std::cout << "TracksFarLeft = " << glm::to_string(this->world.tracksFarLeft) << std::endl;
+            std::cout << "TracksFarRight = " << glm::to_string(this->world.tracksFarRight) << std::endl;
         }
         
         // We create the randomized artifacts.
@@ -338,7 +355,7 @@ class Playstate: public our::State {
         bool forbiddenAccess = false, forbiddenCollision = false;
         
         // Get the camera component, and fetch a boolean whether the player
-        // has tried to access a forbidden zone. (Anything behind a certain point on the z-axis)
+        // has tried to access a forbidden zone. (Violating any of the movement restrictions)
         // This boolean is then passed to the renderer in the render function.
 
         // Here, we get the new position of the camera in the updatedCameraPosition vector.
@@ -346,7 +363,7 @@ class Playstate: public our::State {
         // check if there is any forbidden collisions first, and if there is not, we update
         // the actual camera position to be updatedCameraPosition.
         glm::vec3 updatedCameraPosition;
-        our::CameraComponent* camera = cameraController.update(&world, (float)deltaTime, &updatedCameraPosition, &forbiddenAccess);
+        our::CameraComponent* camera = cameraController.update(&world, (float)deltaTime, &updatedCameraPosition, &forbiddenAccess, movementRestriction);
         
         // Obtain the remaining number of collectables to update the text.
         int remainingCollectables = collisionSystem.update(&world, updatedCameraPosition, getApp()->getSoundEngine(), &forbiddenCollision, (our::PlaystateType)this->type);

@@ -24,6 +24,8 @@ public:
 
   std::unordered_set<LightComponent *> setOfLights;
   std::unordered_set<Entity *> setOfSpaceArtifacts;
+  // Those hold the far right and the far left points of the track.
+  glm::vec3 tracksFarLeft = glm::vec3(std::numeric_limits<float>::max(), 0, 0), tracksFarRight = glm::vec3(std::numeric_limits<float>::min(), 0, 0);
 
   // This will deserialize a json array of entities and add the new entities to
   // the current world If parent pointer is not null, the new entities will be

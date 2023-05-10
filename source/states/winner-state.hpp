@@ -1,7 +1,7 @@
 #pragma once
 
 #include "play-state.hpp"
-#include "playstate-type.hpp"
+#include "extra-definitions.hpp"
 #include <application.hpp>
 #include <cstddef>
 #include <material/material.hpp>

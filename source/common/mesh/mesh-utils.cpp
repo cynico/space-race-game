@@ -1,4 +1,5 @@
 #include "mesh-utils.hpp"
+#include <limits>
 
 // We will use "Tiny OBJ Loader" to read and process '.obj" files
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -30,6 +31,9 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
     if (!warn.empty()) {
         std::cout << "WARN while loading obj file \"" << filename << "\": " << warn << std::endl;
     }
+
+    float minX = std::numeric_limits<float>::max(), maxX = std::numeric_limits<float>::min();
+    glm::vec3 farLeft, farRight;
 
     // An obj file can have multiple shapes where each shape can have its own material
     // Ideally, we would load each shape into a separate mesh or store the start and end of it in the element buffer to be able to draw each shape separately
@@ -76,10 +80,24 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
                 // if yes, just add its index in the elements vector
                 elements.push_back(it->second);
             }
+
+            // Testing whether this vertex's x-coordinate is closer to the far left.
+            if (vertex.position.x < minX) {
+                farLeft = glm::vec3(vertex.position);
+                minX = vertex.position.x;
+            }
+
+            // Testing whether this vertex's x-coordinate is closer to the far right.
+            if (vertex.position.x > maxX) {
+                farRight = glm::vec3(vertex.position);
+                maxX = vertex.position.x;
+            }
         }
     }
 
-    return new our::Mesh(vertices, elements);
+    our::Mesh *newMesh = new our::Mesh(vertices, elements);
+    newMesh->farLeft = farLeft; newMesh->farRight = farRight;
+    return newMesh;
 }
 
 
@@ -102,6 +120,10 @@ our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filenam
     if (!warn.empty()) {
         std::cout << "WARN while loading obj file \"" << filename << "\": " << warn << std::endl;
     }
+
+    float minX = std::numeric_limits<float>::max(), maxX = std::numeric_limits<float>::min();
+    // These will hold the far left and the far right vertices in the mesh.
+    glm::vec3 farLeft, farRight;
 
     // Creating the list of meshes to return later in an our::MultipleMeshes object.
     std::list<our::Mesh*>* listOfMeshes = new std::list<our::Mesh*>();
@@ -154,10 +176,25 @@ our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filenam
             } else {
                 elements.push_back(it->second);
             }
+
+            // Testing whether this vertex's x-coordinate is closer to the far left.
+            if (vertex.position.x < minX) {
+                farLeft = glm::vec3(vertex.position);
+                minX = vertex.position.x;
+            }
+
+            // Testing whether this vertex's x-coordinate is closer to the far right.
+            if (vertex.position.x > maxX) {
+                farRight = glm::vec3(vertex.position);
+                maxX = vertex.position.x;
+            }
         }
 
+        our::Mesh *newMesh = new our::Mesh(vertices, elements);
+        newMesh->farLeft = farLeft; newMesh->farRight = farRight;
+
         // Creating the mesh and pushing it to the listOfMeshes.
-        listOfMeshes->push_back(new Mesh(vertices, elements));
+        listOfMeshes->push_back(newMesh);
     }
 
     // Returning the new our::MultipleMeshes object.

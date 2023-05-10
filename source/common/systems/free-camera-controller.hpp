@@ -33,7 +33,7 @@ namespace our
         // forbiddenAccess: returns whether the camera has tried to enter a forbidden zone, so that we may
         // draw a red screen indicating that the zone is forbidden.
         // updatedPosition: the updated position of the camera.
-        CameraComponent* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess) {
+        CameraComponent* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess, our::MovementRestriction movementRestriction) {
             // First of all, we search for an entity containing both a CameraComponent and a FreeCameraControllerComponent
             // As soon as we find one, we break
             CameraComponent* camera = nullptr;
@@ -93,13 +93,12 @@ namespace our
             // If the LEFT SHIFT key is pressed, we multiply the position sensitivity by the speed up factor
             if(app->getKeyboard().isPressed(GLFW_KEY_LEFT_SHIFT)) current_sensitivity *= controller->speedupFactor;
 
+            glm::vec3 tempPosition(position);
+            *updatedPosition = position;
+            
             // We change the camera position based on the keys WASD/QE
             // S & W moves the player back and forth
-            glm::vec3 tempPosition(position);
-            updatedPosition->z = position.z;
-            
             if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
-
             if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
 
             // Q & E moves the player up and down
@@ -109,13 +108,45 @@ namespace our
             if(app->getKeyboard().isPressed(GLFW_KEY_D)) tempPosition +=  right * (deltaTime * current_sensitivity.x);
             if(app->getKeyboard().isPressed(GLFW_KEY_A)) tempPosition -=  right * (deltaTime * current_sensitivity.x);
 
-            // We limit the movement, in that the player can't go behind the start point at z=8
-            updatedPosition->x = tempPosition.x; updatedPosition->y = tempPosition.y;
-            if (tempPosition.z <= 8) {
+            // Restricting the plane movement along the x-axis, so that it can't go out of the track.
+            if (movementRestriction.restrict_x) {
+
+                // Obtaining the would-be position of the camera (eye) in the world coordinate, to compare with the far left point
+                // of the track, and the far right point.
+
+                // Updating the camera's model matrix with the would-be position (of the entity) to calculate the would-be
+                // position of the eye if the model matrix were to be updated.
+                camera->setPosition(tempPosition);
+
+                glm::vec4 tempEyeWorld = camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0.0, 0.0, 0.0, 1.0);
+                
+                // Resetting the camera's model matrix after calculating tempEyeWorld. 
+                camera->setPosition(position);
+
+                if (tempEyeWorld.x < world->tracksFarLeft.x || tempEyeWorld.x > world->tracksFarRight.x)
+                    *forbiddenAccess = true;
+                else
+                    updatedPosition->x = tempPosition.x;
+            } else
+                updatedPosition->x = tempPosition.x;
+
+            // Restricting the plane movement along the y-axis, so that it can't go below the track.
+            if (movementRestriction.restrict_y) {
+                if (tempPosition.y < 1)
+                    *forbiddenAccess = true;
+                else
+                    updatedPosition->y = tempPosition.y;
+            } else
+                updatedPosition->y = tempPosition.y;
+
+            // Restricting the plane movement along the z-axis, so that it can't go back behind the start line.
+            if (movementRestriction.restrict_z) {
+                if (tempPosition.z > 8)
+                    *forbiddenAccess = true;
+                else
+                    updatedPosition->z = tempPosition.z;
+            } else
                 updatedPosition->z = tempPosition.z;
-            } else {
-                *forbiddenAccess = true;
-            }
             
             return camera;
         }

@@ -21,6 +21,11 @@ namespace our {
         GLsizei elementCount;
     public:
 
+        // These two vector hold any point that lies on the far right (greatest x coordinate)
+        // and any point that lies on the far left (least x coordinate) in the mesh.
+        // Those are used later for movement restriction along the x-axis.
+        glm::vec3 farLeft, farRight;
+
         void getAll() {
             std::cout << VBO << std::endl;
             std::cout << VAO << std::endl;

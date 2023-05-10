@@ -20,7 +20,7 @@
 #include <irrKlang.h>
 #include <conio.h>
 
-#include "../states/playstate-type.hpp"
+#include "../states/extra-definitions.hpp"
 #include "./text-utils.hpp"
 
 namespace our {

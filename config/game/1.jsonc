@@ -10,6 +10,11 @@
         "fullscreen": false
     },
     "scene": {
+        "movement-control": {
+            "restrict-x": true,
+            "restrict-y": true,
+            "restrict-z": true
+        },
         "renderer":{
             "sky": "assets/textures/space.jpg",
             "postprocess": "assets/shaders/postprocess/vignette.frag"
@@ -322,7 +327,7 @@
                 ]
             },
             {
-                "position": [0, 2, 5],
+                "position": [21, 2, 5],
                 "components": [
                     {
                         "type": "Camera"
@@ -333,7 +338,7 @@
                 ]
             },
             {
-                "position": [-4, -1, -350],
+                "position": [0, -1, -350],
                 "rotation": [0, 0, 0],
                 "scale": [4, 1, 100],
                 "components": [
