@@ -106,7 +106,9 @@ namespace our
                 if (timeSinceSpeedCollected != 0.0) tempPosition += front * (deltaTime * current_sensitivity.z);
                 else {
                     if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
-                    if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
+                    
+                    if (movementRestriction.allowMovingBackwards)
+                        if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
                 }
             }
 

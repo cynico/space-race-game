@@ -118,6 +118,7 @@ class Playstate: public our::State {
                     movementRestriction.restrict_y = config["game-config"]["movement-control"].value("restrict-y", false);
                     movementRestriction.restrict_z = config["game-config"]["movement-control"].value("restrict-z", false);
                     movementRestriction.autoMoveForward = config["game-config"]["movement-control"].value("auto-forward-movement", false);
+                    movementRestriction.allowMovingBackwards = config["game-config"]["movement-control"].value("allow-moving-backward", false);
                 }
             }
         }

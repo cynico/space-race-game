@@ -15,14 +15,15 @@
                 "restrict-x": false,
                 "restrict-y": false,
                 "restrict-z": false,
-                "auto-forward-movement": false
+                "auto-forward-movement": true,
+                "allow-moving-backward": true
             }
         },
         "renderer":{
             "sky": "assets/textures/space.jpg",
             "postprocess": {
                 "default": "assets/shaders/postprocess/nothing.frag",
-                "speedup": "assets/shaders/postprocess/nothing.frag"
+                "speedup": "assets/shaders/postprocess/vignette.frag"
             }
         },
         "assets":{
