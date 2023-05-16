@@ -62,6 +62,7 @@ set(COMMON_SOURCES
         source/common/texture/sampler.hpp
         source/common/texture/sampler.cpp
         source/common/texture/texture2d.hpp
+        source/common/texture/texture-gif.hpp
         source/common/texture/texture-utils.hpp
         source/common/texture/texture-utils.cpp
         source/common/texture/screenshot.hpp

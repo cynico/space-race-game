@@ -231,8 +231,9 @@ namespace our {
         }
 
         // This function decides who have won the race, depending on different variables.
-        void decideWinner() {     
-            winner = (US.time < USSR.time) ? our::US : our::USSR;
+        void decideWinner() {
+
+            winner = ( (1-US.collectedRatio) * US.time < (1-USSR.collectedRatio) * USSR.time) ? our::US : our::USSR;
         }
 
         // This function is called from the player states to set the stats related to a player, later used in deciding the winner.

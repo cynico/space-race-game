@@ -33,7 +33,7 @@ namespace our
         // forbiddenAccess: returns whether the camera has tried to enter a forbidden zone, so that we may
         // draw a red screen indicating that the zone is forbidden.
         // updatedPosition: the updated position of the camera.
-        CameraComponent* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess, our::MovementRestriction movementRestriction) {
+        Entity* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess, our::MovementRestriction movementRestriction, float timeSinceSpeedCollected) {
             // First of all, we search for an entity containing both a CameraComponent and a FreeCameraControllerComponent
             // As soon as we find one, we break
             CameraComponent* camera = nullptr;
@@ -64,11 +64,11 @@ namespace our
 
             // If the left mouse button is pressed, we get the change in the mouse location
             // and use it to update the camera rotation
-            if(app->getMouse().isPressed(GLFW_MOUSE_BUTTON_1)){
+            /*if(app->getMouse().isPressed(GLFW_MOUSE_BUTTON_1)){
                 glm::vec2 delta = app->getMouse().getMouseDelta();
                 rotation.x -= delta.y * controller->rotationSensitivity; // The y-axis controls the pitch
                 rotation.y -= delta.x * controller->rotationSensitivity; // The x-axis controls the yaw
-            }
+            }*/
 
             // We prevent the pitch from exceeding a certain angle from the XZ plane to prevent gimbal locks
             if(rotation.x < -glm::half_pi<float>() * 0.99f) rotation.x = -glm::half_pi<float>() * 0.99f;
@@ -90,16 +90,26 @@ namespace our
                       right = glm::vec3(matrix * glm::vec4(1, 0, 0, 0));
 
             glm::vec3 current_sensitivity = controller->positionSensitivity;
-            // If the LEFT SHIFT key is pressed, we multiply the position sensitivity by the speed up factor
-            if(app->getKeyboard().isPressed(GLFW_KEY_LEFT_SHIFT)) current_sensitivity *= controller->speedupFactor;
+            // If the LEFT SHIFT key is pressed, OR we are in super speed mode,
+            // we multiply the position sensitivity by the speed up factor
+            if((timeSinceSpeedCollected != 0.0) || app->getKeyboard().isPressed(GLFW_KEY_LEFT_SHIFT)) current_sensitivity *= controller->speedupFactor;
 
             glm::vec3 tempPosition(position);
             *updatedPosition = position;
             
             // We change the camera position based on the keys WASD/QE
             // S & W moves the player back and forth
-            if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
-            if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
+
+            if (movementRestriction.autoMoveForward) {
+                tempPosition += front * (deltaTime * current_sensitivity.z); 
+            } else {
+                if (timeSinceSpeedCollected != 0.0) tempPosition += front * (deltaTime * current_sensitivity.z);
+                else {
+                    if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
+                    if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
+                }
+            }
+
 
             // Q & E moves the player up and down
             if(app->getKeyboard().isPressed(GLFW_KEY_Q)) tempPosition += up * (deltaTime * current_sensitivity.y);
@@ -107,6 +117,7 @@ namespace our
             // A & D moves the player left or right 
             if(app->getKeyboard().isPressed(GLFW_KEY_D)) tempPosition +=  right * (deltaTime * current_sensitivity.x);
             if(app->getKeyboard().isPressed(GLFW_KEY_A)) tempPosition -=  right * (deltaTime * current_sensitivity.x);
+
 
             // Restricting the plane movement along the x-axis, so that it can't go out of the track.
             if (movementRestriction.restrict_x) {
@@ -123,7 +134,7 @@ namespace our
                 // Resetting the camera's model matrix after calculating tempEyeWorld. 
                 camera->setPosition(position);
 
-                if (tempEyeWorld.x < world->tracksFarLeft.x || tempEyeWorld.x > world->tracksFarRight.x)
+                if (tempEyeWorld.x < world->track.tracksFarLeft.x || tempEyeWorld.x > world->track.tracksFarRight.x)
                     *forbiddenAccess = true;
                 else
                     updatedPosition->x = tempPosition.x;
@@ -141,14 +152,16 @@ namespace our
 
             // Restricting the plane movement along the z-axis, so that it can't go back behind the start line.
             if (movementRestriction.restrict_z) {
-                if (tempPosition.z > 8)
+                if (tempPosition.z > 4)
                     *forbiddenAccess = true;
                 else
                     updatedPosition->z = tempPosition.z;
             } else
                 updatedPosition->z = tempPosition.z;
             
-            return camera;
+            //std::cout << glm::to_string(updatedPosition) << std::endl;
+
+            return camera->getOwner();
         }
 
         // When the state exits, it should call this function to ensure the mouse is unlocked

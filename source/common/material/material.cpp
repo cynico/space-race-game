@@ -132,4 +132,35 @@ namespace our {
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
 
     }
+
+    void TexturedGIFMaterial::deserialize(const nlohmann::json &data) {
+        TintedMaterial::deserialize(data);
+        if(!data.is_object()) return;
+        alphaThreshold = data.value("alphaThreshold", 0.0f);
+        
+        gif = AssetLoader<GIFTexture>::get(data.value("gif", ""));
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+    }
+
+    void TexturedGIFMaterial::setup() const {
+
+        TintedMaterial::setup();
+
+        shader->use();
+
+        shader->set("alphaThreshold", alphaThreshold);
+
+        // Binding the texture and the sampler to texture unit 0.
+        glActiveTexture(GL_TEXTURE0);
+        if (gif->textures[currentFrame] != NULL) {
+            gif->textures[currentFrame]->bind();
+        }
+
+        if (sampler != NULL) {
+            sampler->bind(0);
+        }
+
+        // Sending the value 0 as the value of the uniform tex.
+        shader->set("tex", 0);
+    }
 }

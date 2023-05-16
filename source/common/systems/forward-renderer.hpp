@@ -8,8 +8,10 @@
 #include "material/material.hpp"
 #include "mesh/multiple-meshes.hpp"
 #include "shader/shader.hpp"
+#include "texture/texture2d.hpp"
 
 #include <glad/gl.h>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
@@ -45,11 +47,14 @@ namespace our
         // Objects used for Postprocessing
         GLuint postprocessFrameBuffer, postProcessVertexArray;
         Texture2D *colorTarget, *depthTarget;
-        TexturedMaterial* postprocessMaterial;
+        
+        std::unordered_map<std::string, ShaderProgram*> postprocessShaders;
+        std::unordered_map<std::string, TexturedMaterial*> postprocessMaterials;
 
         // Forbidden zone material and vertex array. 
         GLuint forbiddenVertexArray;
         Material* forbiddenZoneMaterial;
+
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
         // windowSize is the width & height of the window (in pixels).
@@ -58,7 +63,7 @@ namespace our
         void destroy();
         // This function should be called every frame to draw the given world
         void render(World* world, bool forbiddenAccess);
-
+        std::string postprocessInEffect = "-1";
     };
 
 }

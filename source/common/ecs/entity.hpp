@@ -20,6 +20,7 @@ namespace our {
     enum TYPE_OF_GENERATED_ENTITY {
         CELESTIAL_ORB,
         COLLECTABLE_COIN,
+        SPEED_COLLECTABLE,
         OTHER
     };
     
@@ -40,8 +41,6 @@ namespace our {
         glm::mat4 getLocalToWorldMatrix() const; // Computes and returns the transformation from the entities local space to the world space
         void deserialize(const nlohmann::json&); // Deserializes the entity data and components from a json object
         
-        Entity* master = nullptr;
-
         TYPE_OF_GENERATED_ENTITY typeOfChildMesh = OTHER; // Type of the mesh the entity holds (if any).
         // This template method create a component of type T,
         // adds it to the components map and returns a pointer to it 

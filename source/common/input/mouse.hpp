@@ -76,9 +76,9 @@ namespace our {
         }
 
         void ScrollEvent(double x_offset, double y_offset) {
-            if(!enabled) return;
+            /*if(!enabled) return;
             scrollOffset.x += (float)x_offset;
-            scrollOffset.y += (float)y_offset;
+            scrollOffset.y += (float)y_offset;*/
         }
 
         // Locks the mouse position and hides it (Usually used for FPS games)

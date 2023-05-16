@@ -3,14 +3,25 @@
 #include "components/camera.hpp"
 #include "components/light.hpp"
 #include "components/mesh-renderer.hpp"
+#include "components/multiple-meshes-renderer.hpp"
 #include "entity.hpp"
 #include "json/json.hpp"
 #include <iostream>
+#include <limits>
 #include <ostream>
 #include <unordered_set>
 
 
 namespace our {
+
+  // This holds all spatial info of the track.
+  struct Track {
+    glm::vec3 tracksFarLeft = glm::vec3(std::numeric_limits<float>::max(), 0, 0);
+    glm::vec3 tracksFarRight = glm::vec3(std::numeric_limits<float>::min(), 0, 0);
+    float tracksZFurthest = std::numeric_limits<float>::max();
+    float tracksZNearest = std::numeric_limits<float>::min();
+    float trackLength;
+  };
 
 // This class holds a set of entities
 class World {
@@ -24,14 +35,16 @@ public:
 
   std::unordered_set<LightComponent *> setOfLights;
   std::unordered_set<Entity *> setOfSpaceArtifacts;
-  // Those hold the far right and the far left points of the track.
-  glm::vec3 tracksFarLeft = glm::vec3(std::numeric_limits<float>::max(), 0, 0), tracksFarRight = glm::vec3(std::numeric_limits<float>::min(), 0, 0);
+
+  our::Track track;
 
   // This will deserialize a json array of entities and add the new entities to
   // the current world If parent pointer is not null, the new entities will be
   // have their parent set to that given pointer If any of the entities has
   // children, this function will be called recursively for these children
   void deserialize(const nlohmann::json &data, Entity *parent = nullptr);
+
+  void setTrackRelatedVariables(our::MultipleMeshesRendererComponent* track);
 
   // This adds an entity to the entities set and returns a pointer to that
   // entity WARNING The entity is owned by this world so don't use "delete" to

@@ -26,12 +26,13 @@ public:
     // There is an assumption made in this function, if violated the funciton will need to be changed:
     // a collectable and a planet will never be rendered closely in the world. This is now guaranteed because
     // we render the coins on the track, and the planets everywhere else.
-    int update(World *world, glm::vec3 updatedPosition, irrklang::ISoundEngine* engine, bool *forbiddenCollision, our::PlaystateType xd) {
+    int update(World *world, glm::vec3 updatedPosition, irrklang::ISoundEngine* engine, bool *forbiddenCollision, our::SpeedCollectableInfo *speed) {
 
         if (!world)
             return 0;
 
         std::unordered_set<Entity*> todelete;
+        std::unordered_set<Entity*> toCollectIfSpeed;
 
         // Initialize it to be false.
         *forbiddenCollision = false;
@@ -49,8 +50,15 @@ public:
                 if (distance < 3.0) {                    
                     todelete.insert(*it);
                     world->setOfSpaceArtifacts.erase(*it);
-                    engine->play2D("assets/sounds/coin.wav");     
+                    engine->play2D("assets/sounds/coin.wav");
+                    continue;
                 }
+
+                if ( 
+                    (speed->zAtTimeOfCollection != 100.0) && 
+                    ((*it)->localTransform.position.z < speed->zAtTimeOfCollection) &&
+                    abs((*it)->localTransform.position.z - updatedPosition.z) <= 1
+                ) toCollectIfSpeed.insert(*it);
             
             
             // In case the entity is a celestial orb (planet).
@@ -68,9 +76,29 @@ public:
                     *forbiddenCollision = true;
                     break;
                 }
-            }
-            
+            } else if ((*it)->typeOfChildMesh == our::SPEED_COLLECTABLE) {
+                
+                float distance = glm::distance((*it)->localTransform.position, updatedPosition);
+                if (distance < 3.0) {
+                    speed->inEffect = true;
+                    todelete.insert(*it);
+                } else {
+                    speed->inEffect = false;
+                }
+
+            }       
         }
+
+        // If speed mode is in effect, collect all the coins in approximity to you.
+        if (speed->timeSince != 0.0) {
+            for (auto it = toCollectIfSpeed.begin(); it != toCollectIfSpeed.end(); it++) {
+                world->markForRemoval(*it);
+                world->setOfSpaceArtifacts.erase(*it);
+                engine->play2D("assets/sounds/coin.wav");
+            }
+        }
+
+        toCollectIfSpeed.clear();
 
         // Removing the deleted artifacts from the set of space artifacts.
         // This should be separate to the above loop so that everything is not fucked up.
@@ -87,4 +115,4 @@ public:
   }
 };
 
-} // namespace our
+}

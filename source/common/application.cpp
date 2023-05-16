@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "GLFW/glfw3.h"
 #include "glad/gl.h"
 
 #include <iostream>
@@ -243,6 +244,8 @@ int our::Application::run(int run_for_frames) {
     double last_frame_time = glfwGetTime();
     int current_frame = 0;
 
+    bool sceneChanged = false;
+
     //Game loop
     while(!glfwWindowShouldClose(window)){
         if(run_for_frames != 0 && current_frame >= run_for_frames) break;
@@ -269,8 +272,13 @@ int our::Application::run(int run_for_frames) {
         glViewport(0, 0, frame_buffer_size.x, frame_buffer_size.y);
 
         // Get the current time (the time at which we are starting the current frame).
-        double current_frame_time = glfwGetTime();
-
+        double current_frame_time;
+        if (sceneChanged) {
+            current_frame_time = last_frame_time;
+            sceneChanged = false;
+        } else
+            current_frame_time = glfwGetTime();
+        
         // Call onDraw, in which we will draw the current frame, and send to it the time difference between the last and current frame
         if(currentState) currentState->onDraw(current_frame_time - last_frame_time);
         last_frame_time = current_frame_time; // Then update the last frame start time (this frame is now the last frame)
@@ -325,6 +333,7 @@ int our::Application::run(int run_for_frames) {
             nextState = nullptr;
             // Initialize the new scene
             currentState->onInitialize();
+            sceneChanged = true;
         }
 
         ++current_frame;

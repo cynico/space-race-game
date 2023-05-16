@@ -1,13 +1,19 @@
 #include "forward-renderer.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
+#include "GLFW/glfw3.h"
 #include "components/light.hpp"
+#include "components/mesh-renderer.hpp"
 #include "components/multiple-meshes-renderer.hpp"
+#include "ecs/entity.hpp"
 #include "glad/gl.h"
 #include "glm/geometric.hpp"
+#include "material/material.hpp"
 #include "shader/shader.hpp"
 #include <glm/ext/matrix_transform.hpp>
 #include "../our-util.hpp"
+#include "texture/texture-gif.hpp"
+#include "texture/texture2d.hpp"
 
 namespace our {
 
@@ -80,49 +86,62 @@ namespace our {
         // when rendering the postprocess material/mesh.
         if(config.contains("postprocess")){
             
-            //DONE: (Req 11) Create a framebuffer
-            glGenFramebuffers(1, &(this->postprocessFrameBuffer));
-            glBindFramebuffer(GL_FRAMEBUFFER, this->postprocessFrameBuffer); 
+            if (auto& effects = config["postprocess"]; effects.is_object() && !effects.empty()) {
+                
+                //DONE: (Req 11) Create a framebuffer
+                glGenFramebuffers(1, &(this->postprocessFrameBuffer));
+                glBindFramebuffer(GL_FRAMEBUFFER, this->postprocessFrameBuffer); 
 
-            //DONE: (Req 11) Create a color and a depth texture and attach them to the framebuffer
-            // Hints: The color format can be (Red, Green, Blue and Alpha components with 8 bits for each channel).
-            // The depth format can be (Depth component with 24 bits).
-            this->colorTarget = texture_utils::empty(GL_RGBA8, this->windowSize);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->colorTarget->getOpenGLName(), 0);
+                //DONE: (Req 11) Create a color and a depth texture and attach them to the framebuffer
+                // Hints: The color format can be (Red, Green, Blue and Alpha components with 8 bits for each channel).
+                // The depth format can be (Depth component with 24 bits).
+                this->colorTarget = texture_utils::empty(GL_RGBA8, this->windowSize);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->colorTarget->getOpenGLName(), 0);
 
-            this->depthTarget = texture_utils::empty(GL_DEPTH_COMPONENT24, this->windowSize);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->depthTarget->getOpenGLName(), 0);
+                this->depthTarget = texture_utils::empty(GL_DEPTH_COMPONENT24, this->windowSize);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->depthTarget->getOpenGLName(), 0);
 
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-                std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+                if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                    std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
-            //DONE: (Req 11) Unbind the framebuffer just to be safe
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                //DONE: (Req 11) Unbind the framebuffer just to be safe
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-            // Create a vertex array to use for drawing the texture
-            glGenVertexArrays(1, &postProcessVertexArray);
+                // Create a vertex array to use for drawing the texture
+                glGenVertexArrays(1, &postProcessVertexArray);
 
-            // Create a sampler to use for sampling the scene texture in the post processing shader
-            Sampler* postprocessSampler = new Sampler();
-            postprocessSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            postprocessSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            postprocessSampler->set(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            postprocessSampler->set(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                // Create a sampler to use for sampling the scene texture in the post processing shader
+                Sampler* postprocessSampler = new Sampler();
+                postprocessSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                postprocessSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                postprocessSampler->set(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                postprocessSampler->set(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-            // Create the post processing shader
-            ShaderProgram* postprocessShader = new ShaderProgram();
-            postprocessShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
-            postprocessShader->attach(config.value<std::string>("postprocess", ""), GL_FRAGMENT_SHADER);
-            postprocessShader->link();
+                for(auto& [name, desc] : effects.items()){                  
+                    // Create the post processing shader
+                    ShaderProgram* shader = new ShaderProgram();
+                    shader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
+                    shader->attach(desc, GL_FRAGMENT_SHADER);
+                    shader->link();
 
-            // Create a post processing material
-            postprocessMaterial = new TexturedMaterial();
-            postprocessMaterial->shader = postprocessShader;
-            postprocessMaterial->texture = colorTarget;
-            postprocessMaterial->sampler = postprocessSampler;
-            // The default options are fine but we don't need to interact with the depth buffer
-            // so it is more performant to disable the depth mask
-            postprocessMaterial->pipelineState.depthMask = false;
+                    // Create a post processing material
+                    TexturedMaterial* material = new TexturedMaterial();
+                    material->shader = shader;
+                    material->texture = colorTarget;
+                    material->sampler = postprocessSampler;
+                    // The default options are fine but we don't need to interact with the depth buffer
+                    // so it is more performant to disable the depth mask
+                    material->pipelineState.depthMask = false;
+
+                    postprocessShaders[name] = shader;
+                    postprocessMaterials[name] = material;
+
+                    if (name == "default") postprocessInEffect = name;
+                }
+
+                if (postprocessInEffect == "-1") std::cerr << "WARNING:: NO DEFAULT POSTPROCESS EFFECT IS SUPPLIED." << std::endl;
+
+            }
         }
 
         // Initialize the material associated with the red plane that appears
@@ -154,33 +173,39 @@ namespace our {
             delete skyMaterial;
         }
         // Delete all objects related to post processing
-        if(postprocessMaterial){
-            glDeleteFramebuffers(1, &postprocessFrameBuffer);
-            glDeleteVertexArrays(1, &postProcessVertexArray);
-            delete colorTarget;
-            delete depthTarget;
-            delete postprocessMaterial->sampler;
-            delete postprocessMaterial->shader;
-            delete postprocessMaterial;
-        }
+        for (auto it = postprocessShaders.begin(); it != postprocessShaders.end(); it++) delete it->second;
+        for (auto it = postprocessMaterials.begin(); it != postprocessMaterials.end(); it++) delete it->second;
+
+        postprocessShaders.clear();
+        postprocessMaterials.clear();
+
     }
 
     void ForwardRenderer::render(World* world, bool forbiddenAccess){
         // First of all, we search for a camera and for all the mesh renderers
         CameraComponent* camera = nullptr;
+        Entity* craft = nullptr;
+        
         opaqueCommands.clear();
         transparentCommands.clear();
         for(auto entity : world->getEntities()){
+
             // If we hadn't found a camera yet, we look for a camera in this entity
             if(!camera) camera = entity->getComponent<CameraComponent>();
             // If this entity has a mesh renderer component
             if(auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer){
                 // We construct a command from it
+                if (meshRenderer->nameOfMeshObject == "craft") {
+                    craft = entity;
+                    continue;
+                }
                 RenderCommand command;
                 command.localToWorld = meshRenderer->getOwner()->getLocalToWorldMatrix();
                 command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                 command.mesh = meshRenderer->mesh;
                 command.material = meshRenderer->material;
+
+
                 // if it is transparent, we add it to the transparent commands list
                 if(command.material->transparent){
                     transparentCommands.push_back(command);
@@ -208,6 +233,20 @@ namespace our {
                     material++;
                 }
 
+            }
+        }
+
+        if (craft) {
+            if (auto meshRenderer = craft->getComponent<MeshRendererComponent>(); meshRenderer) {
+                craft->localTransform.position = glm::vec3(camera->getOwner()->localTransform.position);
+                craft->localTransform.rotation = glm::vec3(camera->getOwner()->localTransform.rotation);
+                craft->localTransform.position += glm::vec3(0.0, -10, -1);
+                RenderCommand command;
+                command.localToWorld = craft->getLocalToWorldMatrix();
+                command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                command.mesh = meshRenderer->mesh;
+                command.material = meshRenderer->material;
+                opaqueCommands.push_back(command);
             }
         }
 
@@ -250,7 +289,7 @@ namespace our {
         glDepthMask(true);
 
         // If there is a postprocess material, bind the framebuffer
-        if(postprocessMaterial){
+        if (postprocessInEffect != "-1") {
             //DONE: (Req 11) bind the framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, this->postprocessFrameBuffer);
         }
@@ -271,12 +310,14 @@ namespace our {
             glm::mat4 transform = VP * (*it).localToWorld;
             ShaderProgram* currentShader = (*it).material->shader;
 
-            // Setting up the material and using the shader.
-            (*it).material->setup();
-            currentShader->use();
+
             
             // If it's a lit material, set the light-relevant uniforms.
             if ( dynamic_cast<LitMaterial*>((*it).material) ) {
+
+                // Setting up the material and using the shader.
+                (*it).material->setup();
+                currentShader->use();
 
                 // First, setting the number of all light sources within the world.
                 currentShader->set("light_count", (int)world->setOfLights.size());
@@ -316,8 +357,22 @@ namespace our {
                 
                 // Setting the camera position.
                 currentShader->set("camera_position", cameraPosition);
+            } else if ( auto material = dynamic_cast<TexturedGIFMaterial*>((*it).material); material) {
+
+                currentShader->use();
+
+                if (glfwGetTime() - material->lastFrameTimeChange >= 0.05) {
+                    material->lastFrameTimeChange = glfwGetTime();
+                    material->currentFrame = (material->currentFrame == material->gif->textures.size()-1) ? 0 : material->currentFrame+1;
+                }
+
+                // Setting up the material and using the shader.
+                (*it).material->setup();
+                currentShader->set("transform", transform);
+
             } else {
                 // Otherwise, if it's a textured or a tinted material, just set the transform monolith matrix.
+                (*it).material->setup();
                 currentShader->set("transform", transform);
             }
             (*it).mesh->draw();
@@ -389,15 +444,16 @@ namespace our {
         // Note that: the data of the vertices (coordinates and texture coordinates) 
         // actually lie in the shader: assets/shaders/fullscreen.vert (postprocessMaterial->shader)
         // They are 3 vertices of a big triangle (bigger than the whole window).
-        if(postprocessMaterial){
+        if (postprocessInEffect != "-1"){
+
             //DONE: (Req 11) Return to the default framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            
+
             //DONE: (Req 11) Setup the postprocess material and draw the fullscreen triangle
-            postprocessMaterial->setup();
-            postprocessMaterial->shader->use();
+            postprocessMaterials[postprocessInEffect]->setup();
+            postprocessShaders[postprocessInEffect]->use();
             glBindVertexArray(this->postProcessVertexArray);
-            postprocessMaterial->texture->bind();
+            postprocessMaterials[postprocessInEffect]->texture->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 

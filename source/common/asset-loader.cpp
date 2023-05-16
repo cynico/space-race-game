@@ -1,7 +1,9 @@
 #include "asset-loader.hpp"
 
 #include "shader/shader.hpp"
+#include "texture/texture-gif.hpp"
 #include "texture/texture2d.hpp"
+#include "texture/texture-gif.hpp"
 #include "texture/texture-utils.hpp"
 #include "texture/sampler.hpp"
 #include "mesh/mesh.hpp"
@@ -9,6 +11,8 @@
 #include "mesh/mesh-utils.hpp"
 #include "material/material.hpp"
 #include "deserialize-utils.hpp"
+
+#include <filesystem>
 
 namespace our {
 
@@ -115,12 +119,39 @@ namespace our {
         }
     };
 
+    template<>
+    void AssetLoader<GIFTexture>::deserialize(const nlohmann::json& data) {
+        if(data.is_object()){
+
+                // Looping over all gifs
+                for(auto& [name, desc] : data.items()){
+
+                    our::GIFTexture *gif = new GIFTexture();
+                    std::string path = desc.get<std::string>();
+                    
+                    // Looping over the frames in the gif.
+                    // First, sorting them alphabetically.
+                    std::vector<std::filesystem::path> files_in_directory;
+                    std::copy(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator(), std::back_inserter(files_in_directory));
+                    std::sort(files_in_directory.begin(), files_in_directory.end());
+
+                    for (const std::string& entry : files_in_directory) {
+                        if (!std::filesystem::is_directory(entry))
+                            gif->textures.push_back(texture_utils::loadImage(entry));
+                    }
+                    assets[name] = gif;
+                }
+        }
+    }
+
     void deserializeAllAssets(const nlohmann::json& assetData){
         if(!assetData.is_object()) return;
         if(assetData.contains("shaders"))
             AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
         if(assetData.contains("textures"))
             AssetLoader<Texture2D>::deserialize(assetData["textures"]);
+        if (assetData.contains("gifs"))
+            AssetLoader<GIFTexture>::deserialize(assetData["gifs"]);
         if(assetData.contains("samplers"))
             AssetLoader<Sampler>::deserialize(assetData["samplers"]);
         if(assetData.contains("meshes"))

@@ -4,6 +4,7 @@
 #include "../texture/texture2d.hpp"
 #include "../texture/sampler.hpp"
 #include "../shader/shader.hpp"
+#include "texture/texture-gif.hpp"
 
 #include <glm/vec4.hpp>
 #include <json/json.hpp>
@@ -66,6 +67,18 @@ namespace our {
         void deserialize(const nlohmann::json& data) override;
     };
 
+    class TexturedGIFMaterial : public TintedMaterial {
+    public:
+        GIFTexture* gif;
+        Sampler* sampler;
+        float alphaThreshold;
+        int currentFrame = 0;
+        float lastFrameTimeChange = 0.0; 
+
+        void setup() const override;
+        void deserialize(const nlohmann::json& data) override;
+    };
+
     // This function returns a new material instance based on the given type
     inline Material* createMaterialFromType(const std::string& type){
         if (type == "tinted"){
@@ -74,6 +87,8 @@ namespace our {
             return new TexturedMaterial();
         } else if (type == "lit") {
             return new LitMaterial();
+        } else if (type == "gif") {
+            return new TexturedGIFMaterial();
         } else {
             return new Material();
         }

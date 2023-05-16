@@ -18,20 +18,15 @@ namespace our {
         // This is simple iteration over the ancestors of the current entity.
         // We multiply the chain of the localToWorld (M) matrices, and return the product.
         
-        if (this->master) {
-            return this->master->getLocalToWorldMatrix();
-        } else {
-
-            glm::mat4 localToWorldMatrix(this->localTransform.toMat4());
-            Entity* it = this->parent;
-            
-            while (it) {
-                localToWorldMatrix = it->localTransform.toMat4() * localToWorldMatrix;
-                it = it->parent;
-            }
-
-            return localToWorldMatrix;
+        glm::mat4 localToWorldMatrix(this->localTransform.toMat4());
+        Entity* it = this->parent;
+        
+        while (it) {
+            localToWorldMatrix = it->localTransform.toMat4() * localToWorldMatrix;
+            it = it->parent;
         }
+
+        return localToWorldMatrix;
     }
 
     // Deserializes the entity data and components from a json object

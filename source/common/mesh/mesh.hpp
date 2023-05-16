@@ -26,6 +26,8 @@ namespace our {
         // Those are used later for movement restriction along the x-axis.
         glm::vec3 farLeft, farRight;
 
+        glm::vec3 zNearest, zFurthest;
+
         void getAll() {
             std::cout << VBO << std::endl;
             std::cout << VAO << std::endl;

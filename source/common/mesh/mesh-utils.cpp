@@ -33,7 +33,8 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
     }
 
     float minX = std::numeric_limits<float>::max(), maxX = std::numeric_limits<float>::min();
-    glm::vec3 farLeft, farRight;
+    float minZ = std::numeric_limits<float>::max(), maxZ = std::numeric_limits<float>::min();
+    glm::vec3 farLeft, farRight, zNearest, zFurthest;
 
     // An obj file can have multiple shapes where each shape can have its own material
     // Ideally, we would load each shape into a separate mesh or store the start and end of it in the element buffer to be able to draw each shape separately
@@ -92,11 +93,22 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
                 farRight = glm::vec3(vertex.position);
                 maxX = vertex.position.x;
             }
+
+            if (vertex.position.z < minZ) {
+                zFurthest = glm::vec3(vertex.position);
+                minZ = vertex.position.z;
+            }
+
+            if (vertex.position.z > maxZ) {
+                zNearest = glm::vec3(vertex.position);
+                maxZ = vertex.position.z;
+            }
         }
     }
 
     our::Mesh *newMesh = new our::Mesh(vertices, elements);
     newMesh->farLeft = farLeft; newMesh->farRight = farRight;
+    newMesh->zNearest = zNearest; newMesh->zFurthest = zFurthest;
     return newMesh;
 }
 
@@ -122,8 +134,9 @@ our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filenam
     }
 
     float minX = std::numeric_limits<float>::max(), maxX = std::numeric_limits<float>::min();
+    float minZ = std::numeric_limits<float>::max(), maxZ = std::numeric_limits<float>::min();
     // These will hold the far left and the far right vertices in the mesh.
-    glm::vec3 farLeft, farRight;
+    glm::vec3 farLeft, farRight, zNearest, zFurthest;
 
     // Creating the list of meshes to return later in an our::MultipleMeshes object.
     std::list<our::Mesh*>* listOfMeshes = new std::list<our::Mesh*>();
@@ -188,9 +201,20 @@ our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filenam
                 farRight = glm::vec3(vertex.position);
                 maxX = vertex.position.x;
             }
+
+            if (vertex.position.z < minZ) {
+                zFurthest = glm::vec3(vertex.position);
+                minZ = vertex.position.z;
+            }
+
+            if (vertex.position.z > maxZ) {
+                zNearest = glm::vec3(vertex.position);
+                maxZ = vertex.position.z;
+            }
         }
 
         our::Mesh *newMesh = new our::Mesh(vertices, elements);
+        newMesh->zNearest = zNearest; newMesh->zFurthest = zFurthest;
         newMesh->farLeft = farLeft; newMesh->farRight = farRight;
 
         // Creating the mesh and pushing it to the listOfMeshes.
