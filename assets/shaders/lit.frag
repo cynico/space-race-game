@@ -21,7 +21,7 @@ struct Light {
 };
 
 // Maximum number of light sources.
-#define MAX_LIGHTS 100
+#define MAX_LIGHTS 200
 
 // We accept an array of light sources, with maximum
 // number of 8 light sources, as a uniform

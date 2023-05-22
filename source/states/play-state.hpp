@@ -274,6 +274,16 @@ class Playstate: public our::State {
                 // Inserting the artifact into the setOfSpaceArtficats, used later for collision detection.
                 world.setOfSpaceArtifacts.insert(collectable);
                 totalNumberOfArtifacts++;
+
+                // Adding spot light for the collectables in the first segment as a proof of concept.
+                if (segment == 0) {
+                    our::LightComponent *spotLight = collectable->addComponent<our::LightComponent>();
+                    spotLight->type = our::SPOT; spotLight->attenuation = glm::vec3(0,  0, 1); // attenuation 1/d for now
+                    spotLight->color = glm::vec3(1.0); spotLight->direction = glm::vec3(0, -1, 0);
+                    spotLight->cone_angles = glm::vec2(glm::radians(10.0), glm::radians(20.0));
+
+                    world.setOfLights.insert(spotLight);
+                }
             } 
         }
 
@@ -385,6 +395,12 @@ class Playstate: public our::State {
                 moonMesh->mesh = our::AssetLoader<our::Mesh>::get("sphere");
                 moonMesh->material = our::AssetLoader<our::Material>::get("moon");
 
+                our::LightComponent *moonLight = moon->addComponent<our::LightComponent>();
+                moonLight->type = our::POINT; moonLight->attenuation = glm::vec3(0,  0.5, 0); // attenuation 1/d for now
+                moonLight->color = glm::vec3(1.0);
+
+                world.setOfLights.insert(moonLight);
+
                 // Inserting the moon into the setOfCelestialOrbs, to calculate the distance later with
                 // other planets/suns/moons.
                 setOfCelestialOrbs.insert(moon);
@@ -434,11 +450,6 @@ class Playstate: public our::State {
             starMesh->material = our::AssetLoader<our::Material>::get("star");
 
             // Creating a (point) light component and adding it to the star.
-            our::LightComponent *starLight = newStar->addComponent<our::LightComponent>();
-            starLight->type = our::POINT; starLight->attenuation = glm::vec3(0,  0, 1); // attenuation 1/d for now
-            starLight->color = glm::vec3(1.0);
-
-            world.setOfLights.insert(starLight);
 
             // Adding a movement component to the star, that is equivalent of the star's rotation
             // around its own axis.

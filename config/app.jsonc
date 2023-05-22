@@ -12,7 +12,7 @@
     "scene": {
         "game-config": {
             "movement-control": {
-                "restrict-x": false,
+                "restrict-x": false ,
                 "restrict-y": false,
                 "restrict-z": false,
                 "auto-forward-movement": false,
@@ -306,6 +306,18 @@
                             "track-side",
                             "greenMetal"
                         ]
+                    }
+                ]
+            },
+            {
+                "position": [0, 20, 0],
+                "components": [
+                    {
+                        "type": "Light",
+                        "typeOfLight": "DIRECTIONAL",
+                        "color": [1.0, 1.0, 1.0],
+                        "attenuation": [0.0, 1.0, 0.0],
+                        "direction": [0, -1, 0]
                     }
                 ]
             }

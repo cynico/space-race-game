@@ -1,1 +1,3 @@
 * Make sure to download FreeType library and place it under vendor; the path should be: vendor/freetype (with not versioning in the name). Make sure to download latest version. The download link is: https://sourceforge.net/projects/freetype/ 
+
+* Sound is only running on Linux, but it should be fairly straightforward to make it work on Windows, by replacing the libraries and reviewing the linking options in CMakeLists
