@@ -22,6 +22,5 @@ namespace our {
         std::string mesh = data.value("mesh", "monkey");
         this->material = AssetLoader<Material>::get(material);
         this->mesh = AssetLoader<Mesh>::get(mesh);
-        this->nameOfMeshObject = mesh;
     }
 }

@@ -31,7 +31,7 @@ public:
         if (!world)
             return 0;
 
-        std::unordered_set<Entity*> todelete;
+        std::unordered_set<Entity*> collected;
         std::unordered_set<Entity*> toCollectIfSpeed;
 
         // Initialize it to be false.
@@ -47,13 +47,16 @@ public:
                 float distance = glm::distance((*it)->localTransform.position, updatedPosition);
                 // If the distance is less than a manually fine-tuned threshold, then remove the coin
                 // from the world, and play a sound.
-                if (distance < 3.0) {                    
-                    todelete.insert(*it);
-                    world->setOfSpaceArtifacts.erase(*it);
+                if (distance < 3.5) {                    
+                    collected.insert(*it);
                     engine->play2D("assets/sounds/coin.wav");
                     continue;
                 }
 
+                // If speedup is in effect, and we pass by the current coin (the coin is situated after 
+                // the point where we gained the speedup effect), collect it.
+                // Note: speed->zAtTimeOfCollection == 100.0 when speedup is not in effect.
+                // This may seem equivalent to using speed->inEffect as a boolean, but it is not.
                 if ( 
                     (speed->zAtTimeOfCollection != 100.0) && 
                     ((*it)->localTransform.position.z < speed->zAtTimeOfCollection) &&
@@ -61,8 +64,22 @@ public:
                 ) toCollectIfSpeed.insert(*it);
             
             
+            }             
+            // If this is a speed collectable, set speed->inEffect=true, and remove the collectable.
+            else if ((*it)->typeOfChildMesh == our::SPEED_COLLECTABLE) {
+                
+                float distance = glm::distance((*it)->localTransform.position, updatedPosition);
+                if (distance < 3.0) {
+                    speed->inEffect = true;
+                    collected.insert(*it);
+                } else {
+                    speed->inEffect = false;
+                }
+
+            }    
+
             // In case the entity is a celestial orb (planet).
-            } else if ((*it)->typeOfChildMesh == our::CELESTIAL_ORB) {
+            else if ((*it)->typeOfChildMesh == our::CELESTIAL_ORB) {
                 
                 // Calculate the distance, and check whether it's smaller than a threshold.
                 // Now, this threshold was chosen manually. For a sphere of scale (1,1,1),
@@ -76,17 +93,19 @@ public:
                     *forbiddenCollision = true;
                     break;
                 }
-            } else if ((*it)->typeOfChildMesh == our::SPEED_COLLECTABLE) {
-                
-                float distance = glm::distance((*it)->localTransform.position, updatedPosition);
-                if (distance < 3.0) {
-                    speed->inEffect = true;
-                    todelete.insert(*it);
-                } else {
-                    speed->inEffect = false;
-                }
+            } else if ((*it)->typeOfChildMesh == our::OTHER_AIRCRAFTS) {
 
-            }       
+                // Calculate the distance, and check whether it's smaller than a threshold.
+                // Now, this threshold was chosen manually. For an aircraft of scale (1,1,1),
+                // a distance of 2.2 seemed appropriate and not too invading.
+                // We multiply this 2.2 by the scale (any component in it, x = y = z, we alwas perform uniform
+                // scaling with the planets), to get a threshold appropriate to the size of the aircraft.  
+                float distance = glm::distance((*it)->localTransform.position, updatedPosition);
+                if (distance < 15 * (*it)->localTransform.scale.x * world->airCraftEntity->localTransform.scale.x) {
+                    *forbiddenCollision = true;
+                    break;
+                }            
+            }
         }
 
         // If speed mode is in effect, collect all the coins in approximity to you.
@@ -102,10 +121,11 @@ public:
 
         // Removing the deleted artifacts from the set of space artifacts.
         // This should be separate to the above loop so that everything is not fucked up.
-        for (auto it = todelete.begin(); it != todelete.end(); it++) {
+        for (auto it = collected.begin(); it != collected.end(); it++) {
             world->markForRemoval(*it);
+            world->setOfSpaceArtifacts.erase(*it);
         }
-        todelete.clear();
+        collected.clear();
 
         // Actually deleting the marked entities. This helps in saving unused memory.
         world->deleteMarkedEntities();

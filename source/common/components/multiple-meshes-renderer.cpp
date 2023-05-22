@@ -42,9 +42,6 @@ namespace our {
         // .obj file, throw an exception.
         if (this->meshes->listOfMeshes->size() != this->materials->size())
             throw std::runtime_error("UNEXPECTED:: NUMBER OF OBJECTS IN PROVIDED MESH IS NOT EQUAL TO NUMBER OF PROVIDED MATERIALS");
-
-        // Setting the name of the mesh's object as listed in config.json 
-        nameOfMeshObject = mesh;
     }
     
 }

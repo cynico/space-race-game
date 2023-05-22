@@ -18,9 +18,13 @@ namespace our {
     // the entity has a mesh of a coin, or a mesh of a planet,
     // other than that, we are not interested. 
     enum TYPE_OF_GENERATED_ENTITY {
+        TRACK,
         CELESTIAL_ORB,
         COLLECTABLE_COIN,
         SPEED_COLLECTABLE,
+        MAIN_AIRCRAFT,
+        OTHER_AIRCRAFTS,
+        FINISH_LINE,
         OTHER
     };
     

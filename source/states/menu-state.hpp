@@ -105,8 +105,9 @@ class Menustate: public our::State {
         buttons[0].position = {830.0f*(windowSize.x/1280.0), 570.0f*(windowSize.y/720.0)};
         buttons[0].size = {400.0f*(windowSize.x/1280.0), 33.0f*(windowSize.y/720.0)};
         buttons[0].action = [this](){this->getApp()->changeState("play-USSR");};
-
         
+        // Here, we added another button, so that there are two buttons in total for two players.
+        // Their position change depending on the size of the window.
         buttons[1].position = {830.0f*(windowSize.x/1280.0), 607.0f*(windowSize.y/720.0)};
         buttons[1].size = {400.0f*(windowSize.x/1280.0), 33.0f*(windowSize.y/720.0)};
         buttons[1].action = [this](){this->getApp()->changeState("play-US");};

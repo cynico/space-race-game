@@ -201,23 +201,25 @@ our::MultipleMeshes* our::mesh_utils::loadMultipleOBJ(const std::string& filenam
                 farRight = glm::vec3(vertex.position);
                 maxX = vertex.position.x;
             }
-
+            
+            // Testing whether this vertex's z-coordinate is closer to the furthest end of the z-axis.
             if (vertex.position.z < minZ) {
                 zFurthest = glm::vec3(vertex.position);
                 minZ = vertex.position.z;
             }
 
+            // Testing whether this vertex's z-coordinate is closer to the nearest end of the z-axis.
             if (vertex.position.z > maxZ) {
                 zNearest = glm::vec3(vertex.position);
                 maxZ = vertex.position.z;
             }
         }
 
+        // Creating the mesh and pushing it to the listOfMeshes.
         our::Mesh *newMesh = new our::Mesh(vertices, elements);
         newMesh->zNearest = zNearest; newMesh->zFurthest = zFurthest;
         newMesh->farLeft = farLeft; newMesh->farRight = farRight;
 
-        // Creating the mesh and pushing it to the listOfMeshes.
         listOfMeshes->push_back(newMesh);
     }
 

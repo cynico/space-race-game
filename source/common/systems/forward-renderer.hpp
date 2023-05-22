@@ -16,6 +16,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "../states/extra-definitions.hpp"
+
 namespace our
 {
     
@@ -62,7 +64,10 @@ namespace our
         // Clean up the renderer
         void destroy();
         // This function should be called every frame to draw the given world
-        void render(World* world, bool forbiddenAccess);
+        void render(World* world, bool forbiddenAccess, our::GameConfig gameConfig);
+
+        void setupLitMaterial(RenderCommand* command, World* world, glm::mat4 VP, glm::vec3 cameraPosition);
+
         std::string postprocessInEffect = "-1";
     };
 

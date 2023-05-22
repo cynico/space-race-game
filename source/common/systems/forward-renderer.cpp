@@ -14,6 +14,7 @@
 #include "../our-util.hpp"
 #include "texture/texture-gif.hpp"
 #include "texture/texture2d.hpp"
+#include "../states/extra-definitions.hpp"
 
 namespace our {
 
@@ -181,10 +182,9 @@ namespace our {
 
     }
 
-    void ForwardRenderer::render(World* world, bool forbiddenAccess){
+    void ForwardRenderer::render(World* world, bool forbiddenAccess, our::GameConfig gameConfig){
         // First of all, we search for a camera and for all the mesh renderers
         CameraComponent* camera = nullptr;
-        Entity* craft = nullptr;
         
         opaqueCommands.clear();
         transparentCommands.clear();
@@ -192,13 +192,16 @@ namespace our {
 
             // If we hadn't found a camera yet, we look for a camera in this entity
             if(!camera) camera = entity->getComponent<CameraComponent>();
+
+            // If this is the aircraft entity, leave it for later.
+            // We will construct a command for it specially after this for loop.
+            if (entity == world->airCraftEntity)
+                continue;
+
             // If this entity has a mesh renderer component
             if(auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer){
-                // We construct a command from it
-                if (meshRenderer->nameOfMeshObject == "craft") {
-                    craft = entity;
-                    continue;
-                }
+                
+                // We construct a command from it 
                 RenderCommand command;
                 command.localToWorld = meshRenderer->getOwner()->getLocalToWorldMatrix();
                 command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
@@ -236,17 +239,19 @@ namespace our {
             }
         }
 
-        if (craft) {
-            if (auto meshRenderer = craft->getComponent<MeshRendererComponent>(); meshRenderer) {
-                craft->localTransform.position = glm::vec3(camera->getOwner()->localTransform.position);
-                craft->localTransform.rotation = glm::vec3(camera->getOwner()->localTransform.rotation);
-                craft->localTransform.position += glm::vec3(0.0, -10, -1);
-                RenderCommand command;
-                command.localToWorld = craft->getLocalToWorldMatrix();
-                command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
-                command.mesh = meshRenderer->mesh;
-                command.material = meshRenderer->material;
-                opaqueCommands.push_back(command);
+        // Create a RendererCommand for the aircraft.
+        RenderCommand aircraftCommand;
+        if (world->airCraftEntity) {
+            if (auto meshRenderer = world->airCraftEntity->getComponent<MeshRendererComponent>(); meshRenderer) {
+                
+                // Set the position of the aircraft to be the same as the camera position, added to it a difference vector.
+                // So that the aircraft is lower in y-axis than the camera, and is in front of the camera across the z-axis.
+                world->airCraftEntity->localTransform.position = glm::vec3(camera->getOwner()->localTransform.position);
+                world->airCraftEntity->localTransform.position += gameConfig.hyperParametrs.cameraAircraftDiff;
+                aircraftCommand.localToWorld = world->airCraftEntity->getLocalToWorldMatrix();
+                aircraftCommand.center = glm::vec3(aircraftCommand.localToWorld * glm::vec4(0, 0, 0, 1));
+                aircraftCommand.mesh = meshRenderer->mesh;
+                aircraftCommand.material = meshRenderer->material;
             }
         }
 
@@ -262,8 +267,7 @@ namespace our {
         // We sort the transparent meshes based on the length between this cameraForward point,
         // and the center of the transparent object.
         // Remember that we draw the transparent objects from the furthest to the nearest.
-        glm::vec3 cameraForward = glm::vec3(camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1)); // eye
-        
+        glm::vec3 cameraForward = glm::vec3(camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1)); // eye 
 
         // Comment: cameraPosition is used later when setting the uniform camera_position for lit materials.
         glm::vec3 cameraPosition = glm::vec3(camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0, 1));
@@ -309,60 +313,20 @@ namespace our {
             // Obtaining the transform matrix, used for all materials except lit material.
             glm::mat4 transform = VP * (*it).localToWorld;
             ShaderProgram* currentShader = (*it).material->shader;
-
-
             
             // If it's a lit material, set the light-relevant uniforms.
             if ( dynamic_cast<LitMaterial*>((*it).material) ) {
-
-                // Setting up the material and using the shader.
-                (*it).material->setup();
-                currentShader->use();
-
-                // First, setting the number of all light sources within the world.
-                currentShader->set("light_count", (int)world->setOfLights.size());
-
-                // Setting sky colors. We are in space, there's no sense in making one different
-                // than the other, so I made them all blackish gray.
-                currentShader->set("sky.top", glm::vec3(0.3f, 0.3f, 0.3f));
-                currentShader->set("sky.horizon", glm::vec3(0.3f, 0.3f, 0.3f));
-                currentShader->set("sky.bottom", glm::vec3(0.3f, 0.3f, 0.3f));
-                
-                int i = 0;
-
-                // Looping over all existent lights components.
-                for (auto lightIterator = world->setOfLights.begin(); lightIterator != world->setOfLights.end(); lightIterator++) {
-
-                    // Setting the light's parameters: the type, color, attenuation, and cone_angles. 
-                    currentShader->set( our::string_format("lights[%d].type", i), (int)(*lightIterator)->type);
-                    currentShader->set(our::string_format("lights[%d].color", i), (*lightIterator)->color);
-                    currentShader->set(our::string_format("lights[%d].attenuation", i), (*lightIterator)->attenuation);
-                    currentShader->set(our::string_format("lights[%d].cone_angles", i), (*lightIterator)->cone_angles);
-                    
-                    // Setting the light's position and direction.
-                    // The direction is something internal to the light component in case of a SPOT light and a directional light.
-                    // In the case of a point light, it's calculated in the shaders.
-                    // We get the position from the parent entity.
-                    currentShader->set(our::string_format("lights[%d].direction", i), (*lightIterator)->direction);
-                    currentShader->set(our::string_format("lights[%d].position", i), (*lightIterator)->getOwner()->localTransform.position);
-
-                    i++;
-
-                }
-
-                // Setting the M matrix, M_IT matrix, and VP matrix for use in the lit.vert shader.
-                currentShader->set("M", (*it).localToWorld);
-                currentShader->set("M_IT",  glm::transpose(glm::inverse((*it).localToWorld)));
-                currentShader->set("VP", VP);
-                
-                // Setting the camera position.
-                currentShader->set("camera_position", cameraPosition);
-            } else if ( auto material = dynamic_cast<TexturedGIFMaterial*>((*it).material); material) {
+                this->setupLitMaterial(&(*it), world, VP, cameraPosition);
+            }
+            
+            // If this is a gif-texture material, update the current frame if a certain duration has passed.
+            else if ( auto material = dynamic_cast<TexturedGIFMaterial*>((*it).material); material) {
 
                 currentShader->use();
 
-                if (glfwGetTime() - material->lastFrameTimeChange >= 0.05) {
+                if (glfwGetTime() - material->lastFrameTimeChange >= material->durationPerFrame) {
                     material->lastFrameTimeChange = glfwGetTime();
+                    // We update the current frame, and wrap around if we reached the final frame. 
                     material->currentFrame = (material->currentFrame == material->gif->textures.size()-1) ? 0 : material->currentFrame+1;
                 }
 
@@ -377,6 +341,18 @@ namespace our {
             }
             (*it).mesh->draw();
         }
+
+        // Only drawing the aircraft in case the FOV is the normal value.
+        // If speedup is in effect, don't draw the aircraft altogether.
+        if (camera->fovY < 2.0) {
+            glm::mat4 transform = VP * aircraftCommand.localToWorld;
+    
+            aircraftCommand.material->shader->use();
+            aircraftCommand.material->setup();
+            aircraftCommand.material->shader->set("transform", transform);
+            aircraftCommand.mesh->draw();
+        }
+
 
         // If there is a sky material, draw the sky
 
@@ -465,6 +441,54 @@ namespace our {
             forbiddenZoneMaterial->shader->use();
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
+    }
+
+    void ForwardRenderer::setupLitMaterial(RenderCommand* command, World* world, glm::mat4 VP, glm::vec3 cameraPosition) {
+
+        // Setting up the material and using the shader.
+        (*command).material->setup();
+        (*command).material->shader->use();
+
+        // First, setting the number of all light sources within the world.
+        (*command).material->shader->set("light_count", (int)world->setOfLights.size());
+
+        // Setting sky colors. We are in space, there's no sense in making one different
+        // than the other, so I made them all blackish gray.
+        (*command).material->shader->set("sky.top", glm::vec3(0.3f, 0.3f, 0.3f));
+        (*command).material->shader->set("sky.horizon", glm::vec3(0.3f, 0.3f, 0.3f));
+        (*command).material->shader->set("sky.bottom", glm::vec3(0.3f, 0.3f, 0.3f));
+        
+        int i = 0;
+
+        // Looping over all existent lights components.
+        for (auto lightIterator = world->setOfLights.begin(); lightIterator != world->setOfLights.end(); lightIterator++) {
+
+            // Setting the light's parameters: the type, color, attenuation, and cone_angles. 
+            (*command).material->shader->set( our::string_format("lights[%d].type", i), (int)(*lightIterator)->type);
+            (*command).material->shader->set(our::string_format("lights[%d].color", i), (*lightIterator)->color);
+            (*command).material->shader->set(our::string_format("lights[%d].attenuation", i), (*lightIterator)->attenuation);
+            (*command).material->shader->set(our::string_format("lights[%d].cone_angles", i), (*lightIterator)->cone_angles);
+            
+            // Setting the light's position and direction.
+            // The direction is something internal to the light component in case of a SPOT light and a directional light.
+            // In the case of a point light, it's calculated in the shaders.
+            // We get the position from the parent entity.
+            (*command).material->shader->set(our::string_format("lights[%d].direction", i), (*lightIterator)->direction);
+            (*command).material->shader->set(our::string_format("lights[%d].position", i), (*lightIterator)->getOwner()->localTransform.position);
+
+            i++;
+
+        }
+
+        // Setting the M matrix, M_IT matrix, and VP matrix for use in the lit.vert shader.
+        (*command).material->shader->set("M", (*command).localToWorld);
+        (*command).material->shader->set("M_IT",  glm::transpose(glm::inverse((*command).localToWorld)));
+        (*command).material->shader->set("VP", VP);
+        
+        // Setting the camera position.
+        (*command).material->shader->set("camera_position", cameraPosition);
+
+
     }
 }
 

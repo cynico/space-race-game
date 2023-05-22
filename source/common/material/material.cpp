@@ -80,6 +80,8 @@ namespace our {
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
     }
 
+    // This function sets the uniform alphaThreshold, and sets all the texture
+    // maps.
     void LitMaterial::setup() const {
 
         TintedMaterial::setup();
@@ -118,6 +120,7 @@ namespace our {
 
     }
 
+    // Deserialization of the lit material.
     void LitMaterial::deserialize(const nlohmann::json &data) {
         TintedMaterial::deserialize(data);
         if (!data.is_object()) return;
@@ -133,15 +136,21 @@ namespace our {
 
     }
 
+    // This function read the material data from a json object
     void TexturedGIFMaterial::deserialize(const nlohmann::json &data) {
         TintedMaterial::deserialize(data);
         if(!data.is_object()) return;
         alphaThreshold = data.value("alphaThreshold", 0.0f);
-        
+        durationPerFrame = data.value("duration-per-frame", 0.05); 
+
         gif = AssetLoader<GIFTexture>::get(data.value("gif", ""));
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
     }
 
+    // This function should call the setup of its parent and
+    // set the "alphaThreshold" uniform to the value in the member variable alphaThreshold
+    // Then it should bind the texture to the current frame in the gif,
+    // bind the sampler to the texture unit and send the unit number to the uniform variable "tex" 
     void TexturedGIFMaterial::setup() const {
 
         TintedMaterial::setup();

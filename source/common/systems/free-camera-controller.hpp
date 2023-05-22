@@ -33,7 +33,7 @@ namespace our
         // forbiddenAccess: returns whether the camera has tried to enter a forbidden zone, so that we may
         // draw a red screen indicating that the zone is forbidden.
         // updatedPosition: the updated position of the camera.
-        Entity* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess, our::MovementRestriction movementRestriction, float timeSinceSpeedCollected) {
+        Entity* update(World* world, float deltaTime, glm::vec3* updatedPosition, bool *forbiddenAccess, our::GameConfig gameConfig, float timeSinceSpeedCollected) {
             // First of all, we search for an entity containing both a CameraComponent and a FreeCameraControllerComponent
             // As soon as we find one, we break
             CameraComponent* camera = nullptr;
@@ -64,11 +64,13 @@ namespace our
 
             // If the left mouse button is pressed, we get the change in the mouse location
             // and use it to update the camera rotation
-            /*if(app->getMouse().isPressed(GLFW_MOUSE_BUTTON_1)){
-                glm::vec2 delta = app->getMouse().getMouseDelta();
-                rotation.x -= delta.y * controller->rotationSensitivity; // The y-axis controls the pitch
-                rotation.y -= delta.x * controller->rotationSensitivity; // The x-axis controls the yaw
-            }*/
+            if (gameConfig.movementRestriction.allowMouse) {
+                if(app->getMouse().isPressed(GLFW_MOUSE_BUTTON_1)){
+                    glm::vec2 delta = app->getMouse().getMouseDelta();
+                    rotation.x -= delta.y * controller->rotationSensitivity; // The y-axis controls the pitch
+                    rotation.y -= delta.x * controller->rotationSensitivity; // The x-axis controls the yaw
+                }
+            }
 
             // We prevent the pitch from exceeding a certain angle from the XZ plane to prevent gimbal locks
             if(rotation.x < -glm::half_pi<float>() * 0.99f) rotation.x = -glm::half_pi<float>() * 0.99f;
@@ -100,29 +102,43 @@ namespace our
             // We change the camera position based on the keys WASD/QE
             // S & W moves the player back and forth
 
-            if (movementRestriction.autoMoveForward) {
+            if (gameConfig.movementRestriction.autoMoveForward) {
                 tempPosition += front * (deltaTime * current_sensitivity.z); 
             } else {
                 if (timeSinceSpeedCollected != 0.0) tempPosition += front * (deltaTime * current_sensitivity.z);
                 else {
                     if(app->getKeyboard().isPressed(GLFW_KEY_W)) tempPosition += front * (deltaTime * current_sensitivity.z);
                     
-                    if (movementRestriction.allowMovingBackwards)
+                    if (gameConfig.movementRestriction.allowMovingBackwards)
                         if(app->getKeyboard().isPressed(GLFW_KEY_S)) tempPosition -= front * (deltaTime * current_sensitivity.z);
                 }
             }
-
 
             // Q & E moves the player up and down
             if(app->getKeyboard().isPressed(GLFW_KEY_Q)) tempPosition += up * (deltaTime * current_sensitivity.y);
             if(app->getKeyboard().isPressed(GLFW_KEY_E)) tempPosition -= up * (deltaTime * current_sensitivity.y);
             // A & D moves the player left or right 
-            if(app->getKeyboard().isPressed(GLFW_KEY_D)) tempPosition +=  right * (deltaTime * current_sensitivity.x);
-            if(app->getKeyboard().isPressed(GLFW_KEY_A)) tempPosition -=  right * (deltaTime * current_sensitivity.x);
+            if(app->getKeyboard().isPressed(GLFW_KEY_D)) {
+                tempPosition +=  right * (deltaTime * current_sensitivity.x);
+                if (world->airCraftEntity)
+                   world->airCraftEntity->localTransform.rotation = glm::vec3(0.0, 0.0, -0.3);
+            } else if (app->getKeyboard().justReleased(GLFW_KEY_D)) {
+                if (world->airCraftEntity)
+                    world->airCraftEntity->localTransform.rotation = glm::vec3(0.0, 0.0, 0.0);
+            }
+
+            if(app->getKeyboard().isPressed(GLFW_KEY_A)) {
+                tempPosition -=  right * (deltaTime * current_sensitivity.x);
+                if (world->airCraftEntity)
+                    world->airCraftEntity->localTransform.rotation = glm::vec3(0.0, 0.0, 0.3);
+            } else if (app->getKeyboard().justReleased(GLFW_KEY_A)) {
+                if (world->airCraftEntity)
+                    world->airCraftEntity->localTransform.rotation = glm::vec3(0.0, 0.0, 0.0);
+            }
 
 
             // Restricting the plane movement along the x-axis, so that it can't go out of the track.
-            if (movementRestriction.restrict_x) {
+            if (gameConfig.movementRestriction.restrict_x) {
 
                 // Obtaining the would-be position of the camera (eye) in the world coordinate, to compare with the far left point
                 // of the track, and the far right point.
@@ -144,8 +160,8 @@ namespace our
                 updatedPosition->x = tempPosition.x;
 
             // Restricting the plane movement along the y-axis, so that it can't go below the track.
-            if (movementRestriction.restrict_y) {
-                if (tempPosition.y < 1)
+            if (gameConfig.movementRestriction.restrict_y) {
+                if (tempPosition.y+gameConfig.hyperParametrs.cameraAircraftDiff.y < 1)
                     *forbiddenAccess = true;
                 else
                     updatedPosition->y = tempPosition.y;
@@ -153,8 +169,8 @@ namespace our
                 updatedPosition->y = tempPosition.y;
 
             // Restricting the plane movement along the z-axis, so that it can't go back behind the start line.
-            if (movementRestriction.restrict_z) {
-                if (tempPosition.z > 4)
+            if (gameConfig.movementRestriction.restrict_z) {
+                if (tempPosition.z+gameConfig.hyperParametrs.cameraAircraftDiff.z > 4)
                     *forbiddenAccess = true;
                 else
                     updatedPosition->z = tempPosition.z;

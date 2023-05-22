@@ -16,8 +16,6 @@ namespace our {
         MultipleMeshes* meshes; // The meshes that should be drawn
         std::list<Material*> *materials; // The materials used to draw the meshes
         
-        std::string nameOfMeshObject; // This should hold the name of the 3d loaded object (the name as listed in the config.json).
-
         // The ID of this component type is "Multiple Mesh Renderer"
         static std::string getID() { return "Multiple Mesh Renderer"; }
 

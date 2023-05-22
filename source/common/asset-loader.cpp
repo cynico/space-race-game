@@ -119,6 +119,12 @@ namespace our {
         }
     };
 
+    // This will load all the gif textures defined in "data"
+    // data must be in the form:
+    //    { gif_name : "path/to/gif_directory" }
+    // The directory must contain the frames of the gif.
+    // The frames are sorted alphabetically and loaded (thus for correct gif view, 
+    // name them in a lexical order).
     template<>
     void AssetLoader<GIFTexture>::deserialize(const nlohmann::json& data) {
         if(data.is_object()){
@@ -169,7 +175,7 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
-        AssetLoader<MultipleMeshes>::clear();
+        AssetLoader<MultipleMeshes>::clear(); // This line was added after support for multiple meshes was added.
     }
 
 }

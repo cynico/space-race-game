@@ -56,7 +56,9 @@ namespace our {
         void deserialize(const nlohmann::json& data) override;
     };
 
-
+    // This is the material class for the lit material.
+    // It's similar to TexturedMaterial but contains all 
+    // the texture maps needed for the material. 
     class LitMaterial : public TintedMaterial {
     public:
         Texture2D* albedo, *specular, *roughness, *ambient_occlusion, *emissive;
@@ -67,13 +69,17 @@ namespace our {
         void deserialize(const nlohmann::json& data) override;
     };
 
+    // This is the material class for the gif material.
+    // It's similar to the TexturedMaterial but contains all gif-related
+    // data members.
     class TexturedGIFMaterial : public TintedMaterial {
     public:
         GIFTexture* gif;
         Sampler* sampler;
         float alphaThreshold;
-        int currentFrame = 0;
-        float lastFrameTimeChange = 0.0; 
+        int currentFrame = 0; // The index of the current frame in gif.texturess
+        float lastFrameTimeChange = 0.0; // The last time the frame has changed
+        float durationPerFrame; // The duration for each frame.
 
         void setup() const override;
         void deserialize(const nlohmann::json& data) override;

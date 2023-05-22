@@ -6,6 +6,8 @@
 
 namespace our {
 
+    // This class is for a gif texture.
+    // It simply is a wrapper of a vector of 2d textures.
     class GIFTexture {
     public:
         std::vector<Texture2D*> textures;

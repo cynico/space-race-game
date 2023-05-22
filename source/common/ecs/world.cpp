@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include "components/mesh-renderer.hpp"
 #include "components/multiple-meshes-renderer.hpp"
 #include "ecs/entity.hpp"
 #include <limits>
@@ -23,9 +24,17 @@ namespace our {
 
                 this->deserialize(entityData["children"], newEntity);
             }
+
+            // If this is the aircraft entity, set the world->airCraftEntity to point to it.
+            if (newEntity->typeOfChildMesh == our::MAIN_AIRCRAFT) this->airCraftEntity = newEntity;
         }
     }
 
+    // This function should set all the track-related variables in the our::Track track
+    // data member above. Those include: the far left, far right, nearest z, and furthest z. 
+    // Remember: the track is a MultipleMeshesRendererComponent. That is, it contains multiple
+    // meshes, each with their farLeft, farRight, zFurthest, and zNearest. We just compare them
+    // and end up with the furthest point on the left in the whole track, the right, etc.
     void World::setTrackRelatedVariables(our::MultipleMeshesRendererComponent* track) {
         
         glm::vec4 farLeft, farRight, zFurthest, zNearest;

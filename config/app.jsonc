@@ -12,18 +12,26 @@
     "scene": {
         "game-config": {
             "movement-control": {
-                "restrict-x": false,
-                "restrict-y": false,
-                "restrict-z": false,
+                "restrict-x": true,
+                "restrict-y": true,
+                "restrict-z": true,
                 "auto-forward-movement": true,
-                "allow-moving-backward": true
+                "allow-moving-backward": false,
+                "allow-mouse": false
+            },
+            "hyper-parameters": {
+                "camera-aircraft-adjacency-diff": [0, -10, -15],
+                "collectables-material": "glass",
+                "collectable-mesh": "collectable",
+                "collectable-density": 0.1,
+                "track-length": 30
             }
         },
         "renderer":{
             "sky": "assets/textures/space.jpg",
             "postprocess": {
                 "default": "assets/shaders/postprocess/nothing.frag",
-                "speedup": "assets/shaders/postprocess/chromatic-aberration.frag"
+                "speedup": "assets/shaders/postprocess/grayscale.frag"
             }
         },
         "assets":{
@@ -351,7 +359,7 @@
                 ]
             },
             {
-                "position": [21, 100, 5],
+                "position": [21, 15, 5],
                 "components": [
                     {
                         "type": "Camera"
@@ -359,24 +367,23 @@
                     {
                         "type": "Free Camera Controller"
                     }
-                ],
-                "children": [
+                ]
+            },
+            {
+                "scale": [0.6, 0.6, 0.6],
+                "typeOfGenerated": "MAIN_AIRCRAFT",
+                "components": [
                     {
-                        "position": [0, 0, 0],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "Mesh Renderer",
-                                "mesh": "craft",
-                                "material": "craft"
-                            }
-                        ]
+                        "type": "Mesh Renderer",
+                        "mesh": "craft",
+                        "material": "craft"
                     }
                 ]
             },
             {
                 "rotation": [0, 0, 0],
                 "scale": [4, 1, 50],
+                "typeOfGenerated": "TRACK",
                 "components": [
                     {
                         "type": "Multiple Mesh Renderer",

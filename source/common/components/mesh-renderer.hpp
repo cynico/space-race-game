@@ -12,7 +12,6 @@ namespace our {
     public:
         Mesh* mesh; // The mesh that should be drawn
         Material* material; // The material used to draw the mesh
-        std::string nameOfMeshObject; // This should hold the name of the 3d loaded object (the name as listed in the config.json).
 
         // The ID of this component type is "Mesh Renderer"
         static std::string getID() { return "Mesh Renderer"; }

@@ -62,5 +62,6 @@ namespace our {
     // This function creates a text struct, and initializes/creates all of its data members.
     Text* CreateText(std::string displayedText, float scale, XPositioning xPosition, glm::vec3 color = glm::vec3(1.0f));
 
+    // This function renders the given text.
     void RenderText(Text* text, glm::ivec2 windowSize, std::map<char, Character>*characters);
 }

@@ -35,6 +35,7 @@ public:
 
   std::unordered_set<LightComponent *> setOfLights;
   std::unordered_set<Entity *> setOfSpaceArtifacts;
+  Entity* airCraftEntity;
 
   our::Track track;
 
@@ -44,6 +45,8 @@ public:
   // children, this function will be called recursively for these children
   void deserialize(const nlohmann::json &data, Entity *parent = nullptr);
 
+  // This function should set all the track-related variables in the our::Track track
+  // data member above. Those include: the far left, far right, nearest z, and furthest z. 
   void setTrackRelatedVariables(our::MultipleMeshesRendererComponent* track);
 
   // This adds an entity to the entities set and returns a pointer to that
