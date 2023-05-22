@@ -126,6 +126,7 @@ class Playstate: public our::State {
                     gameConfig.movementRestriction.autoMoveForward = config["game-config"]["movement-control"].value("auto-forward-movement", false);
                     gameConfig.movementRestriction.allowMovingBackwards = config["game-config"]["movement-control"].value("allow-moving-backward", false);
                     gameConfig.movementRestriction.allowMouse = config["game-config"]["movement-control"].value("allow-mouse", false);
+                    gameConfig.movementRestriction.hideAircraft = config["game-config"]["movement-control"].value("hide-aircraft", false);
                 }
             }
 
@@ -162,6 +163,8 @@ class Playstate: public our::State {
 
         // Create the finish line.
         this->createFinishLine(track);
+
+        std::cout << "The overall number of light sources will be: " << world.setOfLights.size() << std::endl;
 
         // We create the necessary text to be displayed, mainly: text to display time,
         // text to display the current player, and text to display the number of collected
@@ -267,19 +270,6 @@ class Playstate: public our::State {
                 // Creating the movement component (rotation around the y-axis)
                 our::MovementComponent* m = collectable->addComponent<our::MovementComponent>();
                 m->angularVelocity = glm::vec3(0, glm::radians(60.0), 0);
-
-
-                // Creating the light component (spot light component) every 3 out of 4 artifacts.
-                if (rand() % 4 < 3) {
-                    our::LightComponent* light = collectable->addComponent<our::LightComponent>();
-                    light->color = glm::vec3(1.0);
-                    light->type = our::SPOT;
-                    light->direction = glm::vec3(0, -1, 0);
-                    light->attenuation = glm::vec3(0, 0, 1);
-                    light->cone_angles = glm::vec2(glm::radians(10.0), glm::radians(20.0));
-
-                    world.setOfLights.insert(light);
-                }
 
                 // Inserting the artifact into the setOfSpaceArtficats, used later for collision detection.
                 world.setOfSpaceArtifacts.insert(collectable);
@@ -403,8 +393,8 @@ class Playstate: public our::State {
 
 
         // Creating stars.
-        int totalNumberOfStars = rand() % (10 - 5 + 1);
-        totalNumberOfStars += 5;
+        int minNumberOfStars = 10, maxNumberOfStars = 20;
+        int totalNumberOfStars = (rand() % (maxNumberOfStars - minNumberOfStars + 1)) + minNumberOfStars;
         std::cout << "The random number of stars will be: " << totalNumberOfStars << std::endl;
 
         for (int i = 0; i < totalNumberOfStars; i++) {
@@ -444,11 +434,11 @@ class Playstate: public our::State {
             starMesh->material = our::AssetLoader<our::Material>::get("star");
 
             // Creating a (point) light component and adding it to the star.
-            /*our::LightComponent *starLight = newStar->addComponent<our::LightComponent>();
+            our::LightComponent *starLight = newStar->addComponent<our::LightComponent>();
             starLight->type = our::POINT; starLight->attenuation = glm::vec3(0,  0, 1); // attenuation 1/d for now
             starLight->color = glm::vec3(1.0);
 
-            world.setOfLights.insert(starLight);*/
+            world.setOfLights.insert(starLight);
 
             // Adding a movement component to the star, that is equivalent of the star's rotation
             // around its own axis.
@@ -534,7 +524,8 @@ class Playstate: public our::State {
         // number of collectables to update the text.
         // The updated aircraft position = updatedCameraPosition + the difference between the two
         // (the camera is higher in y-axis, and earlier (larger z) in the z-axis).
-        int remainingCollectables = collisionSystem.update(&world, updatedCameraPosition+gameConfig.hyperParametrs.cameraAircraftDiff, getApp()->getSoundEngine(), &forbiddenCollision, &speed);
+        glm::vec3 position = gameConfig.movementRestriction.hideAircraft ? updatedCameraPosition : updatedCameraPosition+gameConfig.hyperParametrs.cameraAircraftDiff;
+        int remainingCollectables = collisionSystem.update(&world, position, getApp()->getSoundEngine(), &forbiddenCollision, &speed);
 
         // If a forbidden collision has not happen, update the actual camera position.
         if (!forbiddenCollision) {

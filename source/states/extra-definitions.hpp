@@ -13,7 +13,7 @@ namespace our {
 
     // This struct holds all the movement restriction flags.
     struct MovementRestriction {
-        bool restrict_x, restrict_y, restrict_z, autoMoveForward, allowMovingBackwards, allowMouse;
+        bool restrict_x, restrict_y, restrict_z, autoMoveForward, allowMovingBackwards, allowMouse, hideAircraft;
     };
     
     // This struct holds all other hyper parameters.

@@ -17,7 +17,8 @@
                 "restrict-z": false,
                 "auto-forward-movement": false,
                 "allow-moving-backward": true,
-                "allow-mouse": true
+                "allow-mouse": true,
+                "hide-aircraft": true
             },
             "hyper-parameters": {
                 "camera-aircraft-adjacency-diff": [0, -10, -15],
@@ -54,6 +55,7 @@
                 "glass": "assets/textures/glass-panels.png",
                 "track-panel": "assets/textures/track-panel.png",
                 "track-side": "assets/textures/track-side.png",
+                "star": "assets/textures/star.jpg",
 
                 "greenMetalAlbedo": "assets/textures/lit/green-metal/albedo.png",
                 "greenMetalAO": "assets/textures/lit/green-metal/ao.png",
@@ -304,18 +306,6 @@
                             "track-side",
                             "greenMetal"
                         ]
-                    }
-                ]
-            },
-            {
-                "position": [0, 20, 0],
-                "components": [
-                    {
-                        "type": "Light",
-                        "typeOfLight": "DIRECTIONAL",
-                        "color": [1.0, 1.0, 1.0],
-                        "attenuation": [0.0, 1.0, 0.0],
-                        "direction": [0, -1, 0]
                     }
                 ]
             }

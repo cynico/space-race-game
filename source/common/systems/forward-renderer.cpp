@@ -344,7 +344,7 @@ namespace our {
 
         // Only drawing the aircraft in case the FOV is the normal value.
         // If speedup is in effect, don't draw the aircraft altogether.
-        if (camera->fovY < 2.0) {
+        if (camera->fovY < 2.0 && !gameConfig.movementRestriction.hideAircraft) {
             glm::mat4 transform = VP * aircraftCommand.localToWorld;
             aircraftCommand.material->shader->use();
             aircraftCommand.material->setup();
