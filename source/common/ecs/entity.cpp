@@ -35,7 +35,7 @@ namespace our {
         name = data.value("name", name);
 
         // Obtaining the type of the mesh (if any) included in the entity
-        std::string t = data.value("typeOfGenerated", "OTHER");
+        std::string t = data.value("typeOfEntity", "OTHER");
         if (t == "CELESTIAL_ORB") typeOfChildMesh = CELESTIAL_ORB;
         else if (t == "COLLECTABLE_COIN") typeOfChildMesh = COLLECTABLE_COIN;
         else if (t == "MAIN_AIRCRAFT") typeOfChildMesh = MAIN_AIRCRAFT; 

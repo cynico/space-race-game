@@ -257,9 +257,8 @@ class Playstate: public our::State {
                 // between startOfSegment, and endOfSegment.
                 float endOfSegment = ( world.track.tracksZNearest - world.track.trackLength) -  (segmentLength * segment) ;
                 float startOfSegment =  ( world.track.tracksZNearest - world.track.trackLength) -  (segmentLength * (segment+1)) ; 
-                std::cout << "start " << startOfSegment << std::endl;
-                std::cout << "End " << endOfSegment << std::endl;
- 
+
+
                 zCoordinate = (rand() % (long)(endOfSegment - startOfSegment + 1.0)) + startOfSegment;
                 
                 // Setting the position with the above randomized components at y=5
@@ -270,14 +269,14 @@ class Playstate: public our::State {
                 m->angularVelocity = glm::vec3(0, glm::radians(60.0), 0);
 
 
-                // Creating the light component
-                if (segment == 0 && artifact == 0) {
+                // Creating the light component (spot light component) every 3 out of 4 artifacts.
+                if (rand() % 4 < 3) {
                     our::LightComponent* light = collectable->addComponent<our::LightComponent>();
                     light->color = glm::vec3(1.0);
                     light->type = our::SPOT;
                     light->direction = glm::vec3(0, -1, 0);
-                    light->attenuation = glm::vec3(0, 1, 0);
-                    light->cone_angles = glm::vec2(glm::radians(45.0), glm::radians(90.0));
+                    light->attenuation = glm::vec3(0, 0, 1);
+                    light->cone_angles = glm::vec2(glm::radians(10.0), glm::radians(20.0));
 
                     world.setOfLights.insert(light);
                 }
@@ -370,7 +369,7 @@ class Playstate: public our::State {
             meshComponent->mesh = our::AssetLoader<our::Mesh>::get("sphere");
             std::string planet = planets[rand() % 2];
             meshComponent->material = our::AssetLoader<our::Material>::get(planet);
-
+   
             // Adding a movement component to the planet, that is equivalent of the planet's rotation
             // around its own axis. 
             our::MovementComponent* rotationComponent = newPlanet->addComponent<our::MovementComponent>();

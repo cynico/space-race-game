@@ -12,12 +12,12 @@
     "scene": {
         "game-config": {
             "movement-control": {
-                "restrict-x": true,
-                "restrict-y": true,
-                "restrict-z": true,
-                "auto-forward-movement": true,
-                "allow-moving-backward": false,
-                "allow-mouse": false
+                "restrict-x": false,
+                "restrict-y": false,
+                "restrict-z": false,
+                "auto-forward-movement": false,
+                "allow-moving-backward": true,
+                "allow-mouse": true
             },
             "hyper-parameters": {
                 "camera-aircraft-adjacency-diff": [0, -10, -15],
@@ -51,9 +51,6 @@
             },
             "textures":{
                 "moon": "assets/textures/moon.jpg",
-                "mars": "assets/textures/mars.jpg",
-                "jupiter": "assets/textures/jupiter.jpg",
-                "earth": "assets/textures/earth.jpg",
                 "glass": "assets/textures/glass-panels.png",
                 "track-panel": "assets/textures/track-panel.png",
                 "track-side": "assets/textures/track-side.png",
@@ -82,7 +79,6 @@
                 "portal": "assets/textures/gifs/portal"
             },
             "meshes":{
-                "cube": "assets/models/cube.obj",
                 "collectable": "assets/models/grenade.obj",
                 "plane": "assets/models/plane.obj",
                 "sphere": "assets/models/sphere.obj",
@@ -103,19 +99,6 @@
                 }
             },
             "materials":{
-                "metal":{
-                    "type": "tinted",
-                    "shader": "tinted",
-                    "pipelineState": {
-                        "faceCulling":{
-                            "enabled": false
-                        },
-                        "depthTesting":{
-                            "enabled": true
-                        }
-                    },
-                    "tint": [0.45, 0.4, 0.5, 1]
-                },
                 "glass":{
                     "type": "textured",
                     "shader": "textured",
@@ -252,51 +235,6 @@
                     "emissive": "planet-2-emissive",
                     "sampler": "default"
                 },
-                "mars":{
-                    "type": "textured",
-                    "shader": "textured",
-                    "pipelineState": {
-                        "faceCulling":{
-                            "enabled": false
-                        },
-                        "depthTesting":{
-                            "enabled": true
-                        }
-                    },
-                    "tint": [1, 1, 1, 1],
-                    "texture": "mars",
-                    "sampler": "default"
-                },
-                "jupiter":{
-                    "type": "textured",
-                    "shader": "textured",
-                    "pipelineState": {
-                        "faceCulling":{
-                            "enabled": false
-                        },
-                        "depthTesting":{
-                            "enabled": true
-                        }
-                    },
-                    "tint": [1, 1, 1, 1],
-                    "texture": "jupiter",
-                    "sampler": "default"
-                },
-                "earth":{
-                    "type": "textured",
-                    "shader": "textured",
-                    "pipelineState": {
-                        "faceCulling":{
-                            "enabled": false
-                        },
-                        "depthTesting":{
-                            "enabled": true
-                        }
-                    },
-                    "tint": [1, 1, 1, 1],
-                    "texture": "earth",
-                    "sampler": "default"
-                },
                 "star": {
                     "type": "textured",
                     "shader": "textured",
@@ -331,34 +269,6 @@
         },
         "world":[
             {
-                "position": [0, 20, 0],
-                "scale": [1, 1, 1],
-                "typeOfGenerated": "CELESTIAL_ORB",
-                "components": [
-                    {
-                        "type": "Mesh Renderer",
-                        "mesh": "sphere",
-                        "material": "planet-2"
-                    },
-                    {
-                        "type": "Movement",
-                        "angularVelocity": [0.0, 70.0, 0.0]
-                    }
-                ]
-            },
-            {
-                "position": [2.5, 22.5, 2.5],
-                "scale": [0.25, 0.25, 0.25],
-                "typeOfGenerated": "CELESTIAL_ORB",
-                "components": [
-                    {
-                        "type": "Mesh Renderer",
-                        "mesh": "sphere",
-                        "material": "moon"
-                    }
-                ]
-            },
-            {
                 "position": [21, 15, 5],
                 "components": [
                     {
@@ -371,7 +281,7 @@
             },
             {
                 "scale": [0.6, 0.6, 0.6],
-                "typeOfGenerated": "MAIN_AIRCRAFT",
+                "typeOfEntity": "MAIN_AIRCRAFT",
                 "components": [
                     {
                         "type": "Mesh Renderer",
@@ -383,7 +293,7 @@
             {
                 "rotation": [0, 0, 0],
                 "scale": [4, 1, 50],
-                "typeOfGenerated": "TRACK",
+                "typeOfEntity": "TRACK",
                 "components": [
                     {
                         "type": "Multiple Mesh Renderer",
@@ -394,6 +304,18 @@
                             "track-side",
                             "greenMetal"
                         ]
+                    }
+                ]
+            },
+            {
+                "position": [0, 20, 0],
+                "components": [
+                    {
+                        "type": "Light",
+                        "typeOfLight": "DIRECTIONAL",
+                        "color": [1.0, 1.0, 1.0],
+                        "attenuation": [0.0, 1.0, 0.0],
+                        "direction": [0, -1, 0]
                     }
                 ]
             }

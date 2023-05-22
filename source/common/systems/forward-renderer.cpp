@@ -346,7 +346,6 @@ namespace our {
         // If speedup is in effect, don't draw the aircraft altogether.
         if (camera->fovY < 2.0) {
             glm::mat4 transform = VP * aircraftCommand.localToWorld;
-    
             aircraftCommand.material->shader->use();
             aircraftCommand.material->setup();
             aircraftCommand.material->shader->set("transform", transform);
